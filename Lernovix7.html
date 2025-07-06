@@ -1,0 +1,1705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Lernovix - Class 7</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Noto+Sans:wght@400;700&family=Noto+Sans+Devanagari:wght@400;500;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --pw-purple: #5A007B; --pw-blue: #007BFF; --pw-pink-accent: #E91E63;
+      --pw-text-dark: #333; --pw-text-light: #fff; --pw-bg-light: #fff;
+      --pw-bg-grey: #f0f2f5; --card-shadow: 0 5px 15px rgba(0,0,0,0.07);
+      --font-primary: 'Poppins', 'Noto Sans', 'Noto Sans Devanagari', sans-serif;
+      --correct-green: #28a745; --incorrect-red: #dc3545;
+      --notification-bar-height: 35px;
+      --header-bar-height: 55px;
+      --bottom-nav-height: 60px;
+      --thought-banner-height: 70px;
+      --credits-footer-height: 30px;
+
+      --flashcard-shadow: 0 6px 18px rgba(0,0,0,0.1);
+      --flashcard-radius: 1rem;
+      --flashcard-front-bg: #e0f7fa;
+      --flashcard-front-text: #00796b;
+      --flashcard-front-border: #b2ebf2;
+      --flashcard-back-bg: #e8f5e9;
+      --flashcard-back-text: #33691e;
+      --flashcard-back-border: #c8e6c9;
+      --flashcard-nav-button-bg: #e0e7ff;
+      --flashcard-nav-button-text: var(--pw-blue);
+      --flashcard-nav-button-hover-bg: #c7d2fe;
+
+      /* Game specific colors */
+      --game-bg-light: #f0f8ff; /* Alice Blue like */
+      --game-accent-1: #ffc107; /* Amber for highlights/timers */
+      --game-accent-2: #4caf50; /* Green for score/correct */
+      --game-text-dark: #2c3e50; /* Darker blue/grey for text */
+
+      /* Premium colors */
+      --premium-gold: #FFB74D; /* More subtle gold/orange */
+      --premium-bg-dark: #34495e; /* Darker blue-grey */
+      --premium-text-light: #ecf0f1;
+      --premium-accent: #1abc9c; /* Teal */
+      --premium-plan-selected-bg: #e6f7ff; /* Light blue for selected plan */
+    }
+    body {
+        font-family:var(--font-primary); margin:0;
+        background:linear-gradient(120deg, #84fab0, #8fd3f4); /* Softer gradient */
+        padding:20px;
+        display:flex; justify-content:center; min-height:100vh; align-items:flex-start;
+    }
+    .app-container {
+        width:100%; max-width:420px; background:var(--pw-bg-light);
+        border-radius:25px; box-shadow:0 15px 50px rgba(0,0,0,0.2);
+        overflow:hidden; display:flex; flex-direction:column;
+        position:relative; min-height:700px; /* Adjusted based on content */
+    }
+    .app-container.premium-active .website-title.premium-member-title::after {
+        content: " 🌟";
+        color: var(--premium-gold);
+        font-size: 0.8em;
+    }
+
+
+    .header-bar {
+        display:flex; align-items:center; padding: 0 10px;
+        height: var(--header-bar-height); background: var(--pw-bg-light);
+        z-index: 1010; width: calc(100% - 20px); margin: 10px auto 0 auto;
+        box-sizing: border-box; flex-shrink: 0;
+        border-bottom: 1px solid var(--pw-bg-grey);
+    }
+    .top-menu { z-index:1000; order:1; position: relative; }
+    .website-title {
+        font-size:1.4em; font-weight:700; color:var(--pw-purple);
+        text-align:center; flex-grow:1; margin: 0 8px;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis; order:2;
+    }
+    .profile-button {
+        background: none; border: none; color: var(--pw-purple);
+        font-size: 1.6em; cursor: pointer; padding: 0px 8px; order: 3; line-height: 1;
+    }
+    .profile-button:hover { opacity: 0.7;}
+    .menu-button { background:var(--pw-purple); color:white; padding:4px 8px; border:none; border-radius:5px; font-size:0.8em; cursor:pointer; display:block; }
+    .dropdown-menu {
+        position:absolute; top: calc(100% + 5px); left:0;
+        background:white; border-radius:8px; box-shadow:0 5px 15px rgba(0,0,0,0.15);
+        display:none; flex-direction:column; z-index:1011; width:max-content;
+    }
+    .dropdown-menu button { background:none; border:none; padding:10px 15px; text-align:left; cursor:pointer; font-size:0.9em; white-space:nowrap; width:100%; }
+    .dropdown-menu button:hover { background:var(--pw-bg-grey); }
+    .dropdown-menu button .lock-icon { margin-left: 5px; color: var(--pw-pink-accent); }
+    .dropdown-menu button.premium-active-item { color: var(--premium-accent); font-weight: bold;}
+
+
+    .notification-bar {
+        background-color: var(--pw-pink-accent); color: white; padding: 0 10px;
+        height: var(--notification-bar-height); display: flex; align-items: center; justify-content: space-between;
+        font-size: 0.8em; width: 100%; box-sizing: border-box; z-index: 1005; flex-shrink: 0;
+    }
+    .notification-bar.hidden { display: none; }
+    .notification-text { flex-grow: 1; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
+    .notification-dismiss { background: none; border: none; color: white; font-size: 1.3em; cursor: pointer; padding: 0 8px; }
+
+    .screen {
+        display:none; flex-direction:column; padding:15px; animation:fadeIn 0.4s ease-out;
+        justify-content:flex-start; align-items:center; text-align:center;
+        overflow-y:auto; flex-grow: 1;
+        width: 100%; box-sizing: border-box;
+        padding-bottom: calc(var(--bottom-nav-height) + var(--thought-banner-height) + var(--credits-footer-height) + 15px);
+        min-height: calc(100vh - var(--header-bar-height) - var(--notification-bar-height) - 40px); /* Adjust to viewport better */
+        max-height: calc(100vh - var(--header-bar-height) - var(--notification-bar-height) - 40px);
+    }
+    .screen.active { display:flex; }
+    .screen h1 { font-size:1.5em; color:var(--pw-purple); margin-bottom:15px; margin-top: 5px;}
+    .screen h2 { font-size:1.3em; color:var(--pw-blue); margin-top:0; margin-bottom:12px; }
+    .screen p { font-size:0.9em; color:var(--pw-text-dark); margin-bottom:10px; text-align:center; line-height:1.5; }
+    .screen label { font-size:0.9em; color:var(--pw-text-dark); margin-bottom:5px; display: block; }
+    .screen select, .screen input[type="number"], .screen input[type="text"]:not(#studentNameInput):not(#userQuestion):not(#termScrambleAnswerInput), .screen input[type="email"], .screen textarea { /* Avoid overly general styling */
+        padding: 10px; width: 80%; max-width: 300px;
+        border-radius: 8px; border: 1px solid #ccc; margin-bottom: 15px; font-size: 0.9em; box-sizing: border-box;
+    }
+
+
+    #login-screen h2, #profile-screen h2 {
+        font-size: 1.5em; color: var(--pw-purple); margin-bottom: 20px;
+    }
+    #login-screen p { font-size: 1em; margin-bottom: 12px; }
+    #login-screen input[type="text"] {
+        padding: 12px; width: 80%; max-width: 300px;
+        border-radius: 8px; border: 1px solid #ccc; margin-bottom: 20px; font-size: 1em;
+    }
+    #profile-screen { background-color: var(--pw-bg-grey); }
+    #profile-screen.premium-profile {
+        background: linear-gradient(to bottom, var(--premium-bg-dark), #4a6fa5);
+    }
+    #profile-screen.premium-profile h2,
+    #profile-screen.premium-profile .profile-stat strong,
+    #profile-screen.premium-profile .profile-stat span {
+        color: var(--premium-text-light);
+    }
+    #profile-screen.premium-profile .profile-stat {
+        background-color: rgba(255,255,255,0.1);
+        border: 1px solid var(--premium-gold);
+        box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+    }
+    #profile-screen.premium-profile .profile-stat strong {
+        color: var(--premium-gold);
+    }
+    #profile-screen .profile-stat {
+        background-color: #fff; padding: 10px 15px; border-radius: 8px;
+        margin-bottom: 10px; width: 90%; max-width: 340px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05); text-align: left;
+    }
+    #profile-screen .profile-stat strong { color: var(--pw-purple); }
+
+    .ask-button, .subject-button, .book-button, .chapter-button, .back-button, .notes-subject-button, .notes-chapter-button, .feedback-submit-button, .quick-quiz-option-button, .quick-quiz-next-button, .game-selector-button, .action-button { background:white; color:var(--pw-purple); padding:10px 18px; border-radius:10px; margin:8px; font-size:0.95em; border:1px solid var(--pw-purple); font-weight:500; cursor:pointer; box-shadow:var(--card-shadow); transition:0.2s; width:85%; max-width:320px; text-decoration:none; display:inline-block; }
+    .book-button, .notes-subject-button, .subject-button, .game-selector-button { font-size: 1em; }
+    .chapter-button, .notes-chapter-button { font-size: 0.85em; padding: 8px 12px;}
+    .ask-button, .feedback-submit-button, .quick-quiz-next-button, .action-button { background-color:var(--pw-blue); color:white; border-color: var(--pw-blue); }
+    .action-button.success { background-color: var(--correct-green); border-color: var(--correct-green);}
+    .action-button.premium { background-color: var(--premium-accent); border-color: var(--premium-accent); }
+    .action-button.orange { background-color: var(--premium-gold); border-color: var(--premium-gold); color: var(--pw-purple);}
+    .back-button { background-color:#6c757d; color:white; border-color: #6c757d; font-size:0.85em; padding:8px 15px; margin-top:15px; }
+    .ask-button:hover, .subject-button:hover, .book-button:hover, .chapter-button:hover, .back-button:hover, .notes-subject-button:hover, .notes-chapter-button:hover, .feedback-submit-button:hover, .quick-quiz-option-button:hover, .game-selector-button:hover, .action-button:hover { transform:scale(1.03); box-shadow: 0 5px 15px rgba(0,0,0,0.15); }
+
+
+    #thought-banner-container {
+        height: var(--thought-banner-height); background:var(--pw-bg-grey); color:var(--pw-text-dark);
+        display:flex; flex-direction: column; justify-content:center;align-items:center;
+        font-size:0.8em; border-top:1px solid #ccc; width:100%; position:absolute;
+        bottom: var(--credits-footer-height); z-index: 998; flex-shrink: 0; box-sizing: border-box; padding: 5px; text-align: center;
+    }
+    #thought-display-area { font-style: italic; font-size: 0.9em; line-height: 1.3; margin-bottom: 3px; max-height: 40px; overflow: hidden; }
+    #thought-update-time { font-size: 0.7em; color: #555;}
+
+    #response {
+        margin-top:15px; font-size:0.9em; color:#222; text-align:left;
+        white-space:pre-wrap; background:#f9f9f9; padding:10px;
+        border-radius:12px; width:90%; overflow-y:auto; 
+        min-height: 250px; /* Adjusted height for video-like feel */
+        display: flex; flex-direction: column; justify-content: center; align-items: center;
+        transition: background-color 0.3s;
+    }
+    #ai-presentation-container {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      overflow: hidden; /* Important for animation containment */
+    }
+    .ai-slide {
+        width: 100%;
+        animation: fadeInSlide 0.8s ease-out forwards;
+        font-size: 1.05em; /* Make text slightly larger for presentation */
+        line-height: 1.6;
+        padding: 5px;
+    }
+    @keyframes fadeInSlide { 
+        from { opacity: 0; transform: translateY(20px); } 
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .feedback-response {margin-top:15px;font-size:0.9em;color:#222;text-align:center;white-space:pre-wrap;background:#f9f9f9;padding:10px;border-radius:12px;width:90%; min-height: 20px;}
+    #userQuestion, .feedback-input {padding:10px;width:calc(90% - 22px);border-radius:8px;border:1px solid #ccc;margin-bottom:10px; font-size:0.9em;}
+    .feedback-input { margin-top: 5px; }
+    .feedback-label { font-size: 0.85em; color: var(--pw-text-dark); margin-bottom:2px; display: block; text-align: left; width: 90%; margin-left: auto; margin-right: auto;}
+
+    .generic-mcq-container, .chapter-list-container, .notes-chapter-list-container, .notes-content-container, .formula-topic-list-container, .flashcard-subject-list-container, .flashcard-topic-list-container {width:100%;padding:0 5px;text-align:left; display: flex; flex-direction: column; align-items: center;}
+    .mcq-item{background:#fdfdfd;border-radius:8px;padding:10px;margin-bottom:10px;box-shadow:var(--card-shadow); text-align: left;}
+    .mcq-question{font-size:0.9em;line-height:1.4; font-weight: 500; margin-bottom: 8px;}
+    .mcq-options-list { list-style-type: none; padding-left: 0; margin-bottom: 5px;}
+    .mcq-options-list li{font-size:0.85em;padding:8px; border: 1px solid #eee; border-radius: 6px; margin-bottom: 5px; cursor: pointer; transition: background-color 0.2s, border-color 0.2s;}
+    .mcq-options-list li:hover { background-color: #f0f0f0; }
+    .mcq-options-list li.selected.correct { background-color: var(--correct-green); color: white; border-color: var(--correct-green);}
+    .mcq-options-list li.selected.incorrect { background-color: var(--incorrect-red); color: white; border-color: var(--incorrect-red);}
+    .mcq-options-list li.correct { background-color: var(--correct-green); color: white; border-color: var(--correct-green); }
+    .mcq-options-list li.disabled { cursor: not-allowed; opacity: 0.8; }
+    .mcq-options-list li.disabled:hover { background-color: transparent; }
+    .mcq-options-list li.selected.correct:hover, .mcq-options-list li.selected.incorrect:hover, .mcq-options-list li.correct:hover { background-color: var(--correct-green); } /* Keep green on hover */
+    .mcq-explanation{font-size:0.8em; padding: 8px; background-color: #f9f9f9; border-left: 3px solid var(--pw-blue); margin-top:10px; border-radius: 4px; line-height: 1.5;}
+
+    .notes-content-area, #formulas-display-area { text-align: left; background-color: #f9f9f9; padding: 15px; border-radius: 8px; box-shadow: var(--card-shadow); max-height: 400px; overflow-y: auto; width: 95%; margin: 10px auto; }
+    .notes-content-area ul, #formulas-display-area ul { padding-left: 20px; list-style-position: inside; }
+    .notes-content-area li, #formulas-display-area li { margin-bottom: 8px; line-height: 1.5; }
+    #formulas-display-area ul { list-style-type: none; padding-left: 0; }
+    #formulas-display-area li { background-color: #fff; padding: 10px; border-radius: 6px; margin-bottom: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+    #formulas-display-area li strong { color: var(--pw-blue); }
+
+    .calculator-container{width:100%;max-width:320px;margin-top:15px;background-color:#e0e0e0;border-radius:15px;padding:20px;box-shadow:0 8px 16px rgba(0,0,0,0.15), inset 0 2px 4px rgba(255,255,255,0.5);}
+    .calc-display{width:100%;background-color:#dde1e7;color:var(--pw-text-dark);font-size:2.2em;padding:15px 10px;text-align:right;border-radius:10px;margin-bottom:20px;min-height:60px;line-height:60px;overflow-x:auto;white-space:nowrap;box-sizing:border-box;box-shadow:inset 0 2px 5px rgba(0,0,0,0.1);}
+    .calc-buttons{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+    .calc-buttons button{padding:18px 15px;font-size:1.3em;border:none;border-radius:10px;background-color:#f0f2f5;color:var(--pw-text-dark);cursor:pointer;box-shadow:0 3px 6px rgba(0,0,0,0.1), inset 0 -2px 2px rgba(0,0,0,0.05);transition:all 0.15s ease;}
+    .calc-buttons button:hover{background-color:#fff;transform:translateY(-1px);box-shadow:0 4px 8px rgba(0,0,0,0.15), inset 0 -2px 2px rgba(0,0,0,0.05);}
+    .calc-buttons button:active{transform:translateY(1px);box-shadow:inset 0 3px 6px rgba(0,0,0,0.15);}
+    .calc-buttons .calc-equals{grid-column:span 2;background-color:var(--pw-blue);color:white;}
+    .calc-buttons .calc-equals:hover{background-color:#0056b3;}
+    .calc-buttons button.operator,.calc-buttons button.calc-ac,.calc-buttons button.calc-del, .calc-buttons button.calc-special{background-color:#d1d9e6;}
+    .calc-buttons button.operator:hover,.calc-buttons button.calc-ac:hover,.calc-buttons button.calc-del:hover, .calc-buttons button.calc-special:hover{background-color:#c8cdd8;}
+
+    .bottom-nav-bar {
+      display: flex; justify-content: space-around; align-items: center; background-color: var(--pw-purple);
+      color: white; width: 100%; height: var(--bottom-nav-height); z-index: 1000; box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+      position: absolute; bottom: calc(var(--thought-banner-height) + var(--credits-footer-height)); left:0;
+    }
+    .bottom-nav-button {
+      background: none; border: none; color: white; font-size: 1.1em;
+      padding: 5px; cursor: pointer; flex-grow: 1; text-align: center;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      height: 100%; transition: background-color 0.2s, transform 0.2s;
+    }
+    .bottom-nav-button .nav-text { display: block; font-size: 0.65em; margin-top: 4px; font-weight: normal; }
+    .bottom-nav-button:hover { background-color: rgba(255,255,255,0.1); }
+    .bottom-nav-button.active { background-color: rgba(0,0,0,0.2); transform: scale(1.05); }
+    .bottom-nav-button.active .nav-text { font-weight: bold; }
+
+    #fact-display-area {
+        font-style: italic; color: var(--pw-text-dark); font-size: 1em; line-height: 1.5;
+        margin-bottom: 15px; padding: 15px; background-color: #e9e9ff; border-radius: 8px;
+        min-height: 100px; display:flex; align-items:center; justify-content:center; text-align: center;
+        border-left: 4px solid var(--pw-blue); box-shadow: var(--card-shadow); width: 90%; max-width: 360px;
+    }
+    .quick-quiz-container { width:100%; max-width:380px; padding:15px; background-color:#f9f9f9; border-radius:10px; box-shadow:var(--card-shadow); margin-top:10px; display: flex; flex-direction: column; align-items: center;}
+    .quick-quiz-question { font-weight:bold; color:var(--pw-purple); font-size:1.1em; margin-bottom: 15px;}
+    .quick-quiz-options-container { display: flex; flex-direction: column; width: 100%; align-items: center; margin-bottom: 15px; }
+    .quick-quiz-option-button { background-color:white; color:var(--pw-purple); margin: 5px 0; width: 90%; }
+    .quick-quiz-option-button.correct { background-color:var(--correct-green); color:white; border-color: var(--correct-green); }
+    .quick-quiz-option-button.incorrect { background-color:var(--incorrect-red); color:white; border-color: var(--incorrect-red); }
+    .quick-quiz-option-button.disabled { opacity:0.7; cursor:not-allowed;}
+    .quick-quiz-feedback { margin-top: 10px; font-weight: bold; font-size: 0.95em;}
+    .quick-quiz-score { margin-top: 15px; font-size: 1em; color: var(--pw-blue);}
+
+    #flashcard-viewer-title { font-size: 1.1em; color: var(--pw-purple); margin-bottom: 10px; }
+    .flashcard-viewer-container { display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 360px; margin-top: 5px; perspective: 1000px; }
+    #flashcardCounter { font-size: 0.9em; color: var(--pw-text-dark); margin-bottom: 10px; }
+    .flashcard {
+        width: 90%; height: 220px; position: relative; border-radius: var(--flashcard-radius);
+        cursor: pointer; transition: transform 0.6s ease-in-out, box-shadow 0.3s;
+        transform-style: preserve-3d; box-shadow: var(--flashcard-shadow); margin-bottom: 15px;
+    }
+    .flashcard:hover { transform: scale(1.03); box-shadow: 0 10px 25px rgba(0,0,0,0.15); }
+    .flashcard.flipped { transform: rotateY(180deg) scale(1.03); }
+    .flashcard.flipped:hover { transform: rotateY(180deg) scale(1.05); }
+    .flashcard-face {
+        position: absolute; width: 100%; height: 100%;
+        backface-visibility: hidden; -webkit-backface-visibility: hidden;
+        border-radius: var(--flashcard-radius); display: flex; flex-direction: column;
+        align-items: center; justify-content: center; text-align: center;
+        padding: 20px; box-sizing: border-box; font-size: 1em; line-height: 1.5; overflow-y: auto;
+    }
+    .flashcard-front { background-color: var(--flashcard-front-bg); color: var(--flashcard-front-text); border: 1px solid var(--flashcard-front-border); }
+    .flashcard-back { background-color: var(--flashcard-back-bg); color: var(--flashcard-back-text); border: 1px solid var(--flashcard-back-border); transform: rotateY(180deg); }
+    .flashcard-back ul, .flashcard-back ol { text-align: left; padding-left: 20px; margin-top: 5px; }
+    .flashcard-back li { margin-bottom: 4px; }
+    .flashcard-navigation { display: flex; justify-content: space-between; width: 90%; margin-top: 10px; max-width: 360px; }
+    .flashcard-nav-button {
+        width: 48%; background-color: var(--flashcard-nav-button-bg);
+        color: var(--flashcard-nav-button-text); border: 1px solid var(--flashcard-nav-button-text);
+        padding: 8px 12px; font-size: 0.9em; font-weight: 500; border-radius: 8px; cursor: pointer;
+    }
+    .flashcard-nav-button:hover { background-color: var(--flashcard-nav-button-hover-bg); }
+    #credits-footer-container {
+        height: var(--credits-footer-height); background: var(--pw-bg-grey); color: var(--pw-text-dark);
+        display: flex; justify-content: center; align-items: center; font-size: 0.8em;
+        border-top: 1px solid #ddd; width: 100%; position: absolute; bottom: 0; z-index: 997; box-sizing: border-box;
+    }
+
+    /* --- GAME STYLES --- */
+    #games-selection-screen .subject-button {
+        margin-bottom: 15px;
+    }
+    .game-status-bar {
+        background-color: var(--game-bg-light);
+        padding: 10px 15px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        font-weight: 500;
+        color: var(--game-text-dark);
+        display: flex;
+        justify-content: space-around;
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.06);
+        width: 90%; max-width: 360px;
+    }
+    .game-status-bar span { font-size: 0.9em; }
+    #mathGameTimer, #termScrambleLives, #sstFactTimer { color: var(--pw-pink-accent); font-weight: bold; }
+    #mathGameScore, #termScrambleScore, #sstFactScore { color: var(--game-accent-2); font-weight: bold; }
+
+    .game-question-display {
+        font-size: 1.2em;
+        font-weight: 600;
+        color: var(--pw-purple);
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 12px;
+        margin: 15px auto;
+        width: 90%;
+        max-width: 380px;
+        min-height: 80px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: var(--card-shadow);
+        border: 2px dashed var(--pw-blue);
+    }
+    .game-hint { font-size: 0.85em; color: #555; margin-bottom: 10px; }
+    .game-input-area input[type="text"],
+    #termScrambleAnswerInput {
+        width: calc(80% - 22px);
+        padding: 12px;
+        font-size: 1em;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        margin-right: 10px;
+        margin-bottom: 10px;
+    }
+    #termScrambleAnswerInput { width: calc(90% - 22px); margin-right: 0; display: block; margin-left: auto; margin-right: auto;}
+    .game-feedback {
+        margin-top: 15px;
+        font-size: 1em;
+        font-weight: bold;
+        min-height: 25px;
+    }
+    .game-options-area .quick-quiz-option-button {
+        background-color: var(--pw-bg-light);
+        color: var(--game-text-dark);
+        border: 1px solid #ccc;
+    }
+    .game-options-area .quick-quiz-option-button:hover {
+        background-color: var(--game-bg-light);
+        border-color: var(--pw-blue);
+    }
+    .game-options-area .quick-quiz-option-button.correct {
+        background-color: var(--correct-green) !important; color: white !important; border-color: var(--correct-green) !important;
+    }
+    .game-options-area .quick-quiz-option-button.incorrect {
+        background-color: var(--incorrect-red) !important; color: white !important; border-color: var(--incorrect-red) !important;
+    }
+
+    #premium-unlocked-screen .confetti {
+        font-size: 3em; margin-bottom: 15px; animation: pop 0.5s ease-out;
+    }
+    @keyframes pop { 0% {transform: scale(0.5); opacity:0;} 100% {transform: scale(1); opacity:1;} }
+    
+    #main-premium-screen {
+        background: linear-gradient(135deg, var(--premium-bg-dark), var(--premium-accent));
+        color: var(--premium-text-light);
+    }
+    #main-premium-screen h1, #main-premium-screen h2, #main-premium-screen p {
+        color: var(--premium-text-light);
+    }
+    #main-premium-screen .premium-section {
+        background: rgba(255,255,255,0.08); /* More subtle */
+        padding: 15px; border-radius: 12px; margin-bottom: 15px;
+        width: 90%; max-width: 380px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    #main-premium-screen .premium-section h3 {
+        font-size: 1.1em; color: var(--premium-gold); margin-top:0; margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 5px;
+    }
+    #main-premium-screen .premium-feature-button {
+        background-color: rgba(255,255,255,0.15); border: 1px solid var(--premium-gold);
+        color: var(--premium-text-light); width: 100%; margin-bottom: 8px;
+    }
+     #main-premium-screen .premium-feature-button:hover {
+        background-color: rgba(255,255,255,0.25);
+    }
+    .premium-badge {
+        background-color: var(--premium-gold); color: var(--premium-bg-dark); /* Contrast */
+        padding: 5px 12px; border-radius: 15px; font-size: 0.85em;
+        font-weight: bold; margin: 10px auto; display: inline-block;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+
+    /* Flashcard Master Mode Styles */
+    #flashcard-master-mode-screen .flashcard-options {
+        display: flex; justify-content: space-around; width: 90%; margin-bottom: 15px;
+    }
+    #flashcard-master-mode-screen .flashcard-options button {
+        width: 45%; font-size: 0.85em; padding: 8px;
+        background-color: var(--flashcard-nav-button-bg); color: var(--flashcard-nav-button-text); border: 1px solid var(--flashcard-nav-button-text); border-radius: 6px;
+    }
+    #flashcard-master-mode-screen .flashcard-options button:hover {
+        background-color: var(--flashcard-nav-button-hover-bg);
+    }
+    #flashcard-master-mode-screen .tts-button {
+        font-size: 1.5em; padding: 5px 8px; margin: 0 5px; line-height: 1;
+        background-color: var(--flashcard-nav-button-bg); color: var(--flashcard-nav-button-text); border: 1px solid var(--flashcard-nav-button-text); border-radius: 6px;
+        position: absolute; bottom: 10px; right: 10px; cursor: pointer;
+    }
+    #flashcard-master-mode-screen #masterFlashcard .image-placeholder {
+        width: 80%; height: 100px; background-color: #eee; margin-top:10px;
+        border:1px dashed #ccc; display:flex; align-items:center; justify-content:center; font-size:0.8em; color:#777;
+        border-radius: 6px;
+    }
+     #flashcard-master-mode-screen .flashcard-status-controls { margin-top: 10px; display: flex; justify-content: space-around; width: 90%; max-width: 360px;}
+     #flashcard-master-mode-screen .flashcard-status-controls button {
+         padding: 8px 12px; font-size: 0.8em; margin: 0 5px; width: 45%;
+     }
+    #flashcard-master-mode-screen .flashcard-face {
+        justify-content: center; /* Better centering */
+    }
+    #flashcard-master-mode-screen .card-content-area {
+        overflow-y: auto; max-height: 90%;
+        width: 100%;
+        margin-bottom: 5px;
+    }
+
+
+    /* Custom Quiz Generator Styles */
+    #custom-quiz-generator-screen .quiz-setup-area {
+        width: 90%; max-width: 380px; margin-top: 15px;
+        background-color: var(--pw-bg-grey); padding: 15px; border-radius: 10px;
+    }
+     #custom-quiz-generator-screen #customQuizContainer {
+         width: 100%; margin-top: 20px;
+     }
+
+    /* Performance Analytics Styles */
+    #performance-analytics-screen ul { margin-top:15px; list-style-position: inside; padding-left: 0px; text-align: left; width:100%; max-width: 380px;}
+    #performance-analytics-screen li { background-color: #f9f9f9; padding: 10px; border-radius: 6px; margin-bottom: 8px; border-left: 3px solid var(--premium-accent);}
+
+
+    /* Leaderboard Styles */
+    #leaderboard-screen ol { list-style-position: inside; padding-left: 0px; width:90%; max-width: 360px;}
+    #leaderboard-screen li { background-color: #fff; padding: 10px; border-radius: 8px; margin-bottom: 8px; box-shadow: var(--card-shadow); border-left: 4px solid var(--premium-gold); display: flex; justify-content: space-between; align-items: center; }
+    #leaderboard-screen .leaderboard-rank { font-weight: bold; color: var(--pw-purple); margin-right: 10px; }
+    #leaderboard-screen .leaderboard-name { flex-grow: 1; }
+    #leaderboard-screen .leaderboard-score { font-weight: 500; color: var(--pw-blue); }
+
+
+    @keyframes fadeIn {from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+  </style>
+</head>
+<body>
+  <div class="app-container" id="appContainer">
+    <div class="header-bar">
+        <div class="top-menu">
+          <button class="menu-button" onclick="toggleMenu()">☰</button>
+          <div class="dropdown-menu" id="featureMenu">
+            <button id="nav-ai-tutor" onclick="navigateToFeature('home-screen', document.querySelector('.bottom-nav-button[onclick*=\'home-screen\']')); toggleMenu();">🏠 AI Tutor</button>
+            <button id="nav-mcqs" onclick="navigateToFeature('mcq-subject-screen', null); toggleMenu();">📝 MCQs</button>
+            <button id="nav-notes" onclick="navigateToFeature('notes-subject-screen', null); toggleMenu();">📖 View Notes</button>
+            <button onclick="navigateToScreen('calculator-screen', null); toggleMenu();">🧮 Calculator</button>
+            <button onclick="navigateToScreen('games-selection-screen', null); toggleMenu();">🎮 Games</button>
+            <button id="nav-flashcards-menu" onclick="navigateToFeature('flashcards-subject-screen', document.querySelector('.bottom-nav-button[onclick*=\'flashcards-subject-screen\']')); toggleMenu();">🗂️ Flashcards</button>
+            <button onclick="navigateToScreen('fact-screen', null); displayRandomFact(); toggleMenu();">💡 Random Fact</button>
+            <button onclick="navigateToScreen('feedback-screen', null); toggleMenu();">📢 Provide Feedback</button>
+            <button onclick="alert('Coming Soon: Exam Practice materials!'); toggleMenu();">✍️ Exam Practice (CS)</button>
+            <button id="nav-go-premium" onclick="navigateToScreen('enter-token-screen', null); toggleMenu();">🚀 Activate Premium</button>
+            <button id="nav-analytics" onclick="navigateToFeature('performance-analytics-screen', null); toggleMenu();">📊 Analytics <span class="lock-icon" style="display:none;">🔒</span></button>
+            <button id="nav-leaderboard" onclick="navigateToFeature('leaderboard-screen', null); toggleMenu();">🏆 Leaderboard <span class="lock-icon" style="display:none;">🔒</span></button>
+          </div>
+        </div>
+        <div class="website-title" id="mainAppTitle">Lernovix</div>
+        <button class="profile-button" onclick="navigateToScreen('profile-screen', null)">👤</button>
+    </div>
+
+    <div class="notification-bar" id="notificationBar">
+        <span class="notification-text" id="notificationTextContent">Loading study tip...</span>
+        <button class="notification-dismiss" onclick="dismissNotification()">×</button>
+    </div>
+
+    <div id="login-screen" class="screen">
+      <h2>Welcome to Lernovix!</h2>
+      <p>Please enter your name to begin your Class 7 journey:</p>
+      <input type="text" id="studentNameInput" placeholder="Your Name" maxlength="20">
+      <button class="ask-button" onclick="handleLogin()">Start Learning</button>
+    </div>
+
+    <div id="home-screen" class="screen active"><h2>AI Tutor ✨</h2><p>Ask any Class 7 question:</p><input type="text" id="userQuestion" placeholder="E.g., What is photosynthesis?"><button class="ask-button" onclick="askGemini()">Ask AI</button><div id="response"><div id="ai-presentation-container">Your AI response will appear here.</div></div><div id="premium-home-banner" style="display:none; margin-top:20px;"><button class="action-button premium" onclick="navigateToScreen('main-premium-screen', null)">🌟 Explore Your Premium Features 🌟</button></div></div>
+
+    <div id="mcq-subject-screen" class="screen"><h2>Select MCQ Subject</h2><button class="subject-button" onclick="showMCQContent('maths')">Mathematics</button><button class="subject-button" onclick="showMCQContent('science')">Science</button><button class="subject-button" onclick="showMCQContent('english')">English</button><button class="subject-button" onclick="showMCQContent('hindi')">Hindi</button><button class="subject-button" onclick="showMCQContent('sst')">Social Science</button><button class="back-button" onclick="goBackToHomeFromSubscreen()">Home</button></div>
+    <div id="mcq-science-chapter-screen" class="screen"><h2>Science MCQs</h2><div id="science-chapter-buttons-mcq" class="chapter-list-container"></div><button class="back-button" onclick="navigateToScreen('mcq-subject-screen', null)">Subjects</button></div>
+    <div id="mcq-science-content-screen" class="screen"><h2 id="science-mcq-chapter-title">Science MCQs</h2><div class="generic-mcq-container" id="science-mcq-container-id"></div><button class="back-button" onclick="navigateToScreen('mcq-science-chapter-screen', null)">Chapters</button></div>
+    <div id="mcq-maths-chapter-screen" class="screen"><h2>Maths MCQs</h2><div id="maths-chapter-buttons-mcq" class="chapter-list-container"></div><button class="back-button" onclick="navigateToScreen('mcq-subject-screen', null)">Subjects</button></div>
+    <div id="mcq-maths-content-screen" class="screen"><h2 id="maths-mcq-chapter-title">Maths MCQs</h2><div class="generic-mcq-container" id="maths-mcq-container-id"></div><button class="back-button" onclick="navigateToScreen('mcq-maths-chapter-screen', null)">Chapters</button></div>
+    <div id="mcq-english-book-screen" class="screen"><h2>English MCQs</h2><button class="book-button" onclick="showEnglishBookChapters('honeycomb')">Honeycomb</button><button class="book-button" onclick="showEnglishBookChapters('an_alien_hand')">An Alien Hand</button><button class="back-button" onclick="navigateToScreen('mcq-subject-screen', null)">Subjects</button></div>
+    <div id="mcq-english-chapter-screen" class="screen"><h2 id="english-selected-book-title">Select Chapter</h2><div id="english-chapter-list-container" class="chapter-list-container"></div><button class="back-button" onclick="navigateToScreen('mcq-english-book-screen', null)">Books</button></div>
+    <div id="mcq-english-content-screen" class="screen"><h2 id="english-mcq-chapter-title">English MCQs</h2><div class="generic-mcq-container" id="english-mcq-container-id"></div><button class="back-button" onclick="navigateToScreen('mcq-english-chapter-screen', null)">Chapters</button></div>
+    <div id="mcq-sst-book-screen" class="screen"><h2>SST MCQs</h2><button class="book-button" onclick="showSSTBookChapters('history')">History (Our Pasts - II)</button><button class="book-button" onclick="showSSTBookChapters('geography')">Geography (Our Environment)</button><button class="book-button" onclick="showSSTBookChapters('civics')">Civics (Social and Political Life - II)</button><button class="back-button" onclick="navigateToScreen('mcq-subject-screen', null)">Subjects</button></div>
+    <div id="mcq-sst-chapter-screen" class="screen"><h2 id="sst-selected-book-title">Select Chapter</h2><div id="sst-chapter-list-container" class="chapter-list-container"></div><button class="back-button" onclick="navigateToScreen('mcq-sst-book-screen', null)">Books</button></div>
+    <div id="mcq-sst-content-screen" class="screen"><h2 id="sst-mcq-chapter-title">SST MCQs</h2><div class="generic-mcq-container" id="sst-mcq-container-id"></div><button class="back-button" onclick="navigateToScreen('mcq-sst-chapter-screen', null)">Chapters</button></div>
+    <div id="mcq-hindi-book-screen" class="screen"><h2>Hindi MCQs</h2><button class="book-button" onclick="showHindiBookChapters('vasant')">वसंत</button><button class="book-button" onclick="showHindiBookChapters('mahabharat')">बाल महाभारत कथा</button><button class="back-button" onclick="navigateToScreen('mcq-subject-screen', null)">Subjects</button></div>
+    <div id="mcq-hindi-chapter-screen" class="screen"><h2 id="hindi-selected-book-title">Select Chapter</h2><div id="hindi-chapter-list-container" class="chapter-list-container"></div><button class="back-button" onclick="navigateToScreen('mcq-hindi-book-screen', null)">Books</button></div>
+    <div id="mcq-hindi-content-screen" class="screen"><h2 id="hindi-mcq-chapter-title">Hindi MCQs</h2><div class="generic-mcq-container" id="hindi-mcq-container-id"></div><button class="back-button" onclick="navigateToScreen('mcq-hindi-chapter-screen', null)">Chapters</button></div>
+
+    <div id="notes-subject-screen" class="screen"><h2>Notes Subjects</h2><button class="notes-subject-button" onclick="showNotesSubject('science')">Science Notes <span id="notes-science-lock" class="lock-icon" style="display:none;">🔒</span></button><button class="notes-subject-button" onclick="alert('Maths notes soon!')" disabled>Mathematics (CS)</button><button class="back-button" onclick="goBackToHomeFromSubscreen()">Home</button></div>
+    <div id="notes-science-chapter-screen" class="screen"><h2>Science Notes</h2><div id="notes-science-chapter-list-container" class="notes-chapter-list-container"></div><button class="back-button" onclick="navigateToScreen('notes-subject-screen', null)">Subjects</button></div>
+    <div id="notes-science-content-screen" class="screen"><h2 id="science-notes-chapter-title">Notes</h2><div class="notes-content-container" id="science-notes-content-area"></div> <button class="action-button" id="downloadNotesPdfBtn" onclick="downloadNotesAsPdf()" style="margin-top:10px;display:none;">📥 Download PDF <span class="lock-icon">🔒</span></button> <button class="back-button" onclick="navigateToScreen('notes-science-chapter-screen', null)">Chapters</button></div>
+    
+    <!-- UPDATED: Feedback Screen with simplified inputs -->
+    <div id="feedback-screen" class="screen">
+        <h2>Provide Feedback 📢</h2>
+        <p>Your feedback helps us improve Lernovix. Click submit to open your mail app.</p>
+        <div style="width: 90%; max-width: 380px; text-align: left;">
+             <label for="feedbackName" class="feedback-label">Your Name:</label>
+             <input type="text" id="feedbackName" class="feedback-input" placeholder="Enter your name" style="width: 100%;">
+             <label for="feedbackMessage" class="feedback-label">Your Feedback:</label>
+             <textarea id="feedbackMessage" class="feedback-input" rows="5" placeholder="Your valuable suggestions or issues..." style="width: 100%;"></textarea>
+        </div>
+        <button id="feedbackSubmitButton" class="feedback-submit-button" onclick="submitFeedback()">Submit Feedback</button>
+        <div id="feedback-response-message" class="feedback-response"></div>
+        <button class="back-button" onclick="goBackToHomeFromSubscreen()">Home</button>
+    </div>
+
+
+    <div id="calculator-screen" class="screen"><h2>Calculator 🧮</h2><div class="calculator-container"><div id="calc-display" class="calc-display">0</div><div class="calc-buttons">
+        <button onclick="calcClear()" class="calc-ac">AC</button><button onclick="appendParenthesis('(')" class="calc-special">(</button><button onclick="appendParenthesis(')')" class="calc-special">)</button><button onclick="appendOperator('÷')" class="operator">÷</button>
+        <button onclick="appendNumber('7')">7</button><button onclick="appendNumber('8')">8</button><button onclick="appendNumber('9')">9</button><button onclick="appendOperator('×')" class="operator">×</button>
+        <button onclick="appendNumber('4')">4</button><button onclick="appendNumber('5')">5</button><button onclick="appendNumber('6')">6</button><button onclick="appendOperator('-')" class="operator">-</button>
+        <button onclick="appendNumber('1')">1</button><button onclick="appendNumber('2')">2</button><button onclick="appendNumber('3')">3</button><button onclick="appendOperator('+')" class="operator">+</button>
+        <button onclick="appendNumber('0')">0</button><button onclick="appendDecimal()">.</button><button onclick="calcBackspace()" class="calc-del">DEL</button><button onclick="calculateResult()" class="calc-equals">=</button>
+        <button onclick="calcSqrt()" class="calc-special">√</button><button onclick="calculatePercentage()" class="calc-special">%</button>
+    </div></div><button class="back-button" onclick="goBackToHomeFromSubscreen()">Home</button></div>
+
+    <div id="formulas-subject-screen" class="screen"><h2>Formulas</h2><div id="formula-subject-list-container" class="chapter-list-container"></div><button class="back-button" onclick="goBackToHomeFromSubscreen()">Home</button></div>
+    <div id="formulas-topic-screen" class="screen"><h2 id="formula-topic-title">Topics</h2><div id="formula-topic-list-container" class="formula-topic-list-container"></div><button class="back-button" id="formula-topic-back-button">Subjects</button></div>
+    <div id="formulas-content-screen" class="screen"><h2 id="formulas-content-title">Formulas</h2><div id="formulas-display-area"></div><button class="back-button" id="formulas-content-back-button">Topics</button></div>
+
+    <div id="fact-screen" class="screen"><h2>Random Fact 💡</h2><div><p id="fact-display-area">Loading...</p><button class="ask-button" onclick="displayRandomFact()">Another Fact</button></div><button class="back-button" onclick="goBackToHomeFromSubscreen()">Home</button></div>
+
+    <div id="quick-quiz-screen" class="screen"><h2>Quick Quiz ❓</h2><div class="quick-quiz-container">
+        <div id="quick-quiz-question-area" class="quick-quiz-question">Loading...</div>
+        <div id="quick-quiz-options-area" class="quick-quiz-options-container"></div>
+        <div id="quick-quiz-feedback-area" class="quick-quiz-feedback"></div>
+        <div id="quick-quiz-score-area" class="quick-quiz-score">Score: 0</div>
+        <button id="quick-quiz-next-btn" class="quick-quiz-next-button" onclick="loadNextQuickQuizQuestion()" style="display:none;">Next</button>
+        <button id="custom-quiz-btn" class="quick-quiz-next-button" style="background-color: var(--premium-gold); border-color: var(--premium-gold); color: var(--pw-purple); margin-top: 10px;" onclick="navigateToFeature('custom-quiz-generator-screen', null)">🎯 Custom Quiz Generator <span class="lock-icon">🔒</span></button>
+    </div><button class="back-button" onclick="goBackToHomeFromSubscreen()">Home</button></div>
+    
+    <!-- Custom Quiz Gameplay Screen -->
+    <div id="custom-quiz-play-screen" class="screen">
+        <h2>Custom Quiz in Progress!</h2>
+        <div class="quick-quiz-container">
+            <div id="custom-quiz-play-question-area" class="quick-quiz-question">Loading...</div>
+            <div id="custom-quiz-play-options-area" class="quick-quiz-options-container"></div>
+            <div id="custom-quiz-play-feedback-area" class="quick-quiz-feedback"></div>
+            <div id="custom-quiz-play-score-area" class="quick-quiz-score">Score: 0</div>
+            <button id="custom-quiz-play-next-btn" class="quick-quiz-next-button" onclick="loadNextCustomQuizPlayQuestion()" style="display:none;">Next</button>
+        </div>
+        <button class="back-button" onclick="navigateToFeature('custom-quiz-generator-screen', null)">Back to Quiz Setup</button>
+    </div>
+
+
+    <div id="flashcards-subject-screen" class="screen"><h2>Flashcard Subjects 🗂️</h2><div id="flashcard-subject-list-container" class="flashcard-subject-list-container"></div><button class="back-button" onclick="goBackToHomeFromSubscreen()">Home</button></div>
+    <div id="flashcards-topic-screen" class="screen"><h2 id="flashcard-topic-title">Flashcard Topics</h2><div id="flashcard-topic-list-container" class="flashcard-topic-list-container"></div><button class="back-button" id="flashcard-topic-back-button">Subjects</button></div>
+    <div id="flashcard-viewer-screen" class="screen"><h2 id="flashcard-viewer-title">Flashcards</h2><p class="flashcard-counter" id="flashcardCounter">Card 0 / 0</p><div class="flashcard-viewer-container"><div class="flashcard" id="flashcard" onclick="flipCard()"><div class="flashcard-face flashcard-front" id="flashcardFront">Term/Question Side</div><div class="flashcard-face flashcard-back" id="flashcardBack">Definition/Answer Side</div></div><div class="flashcard-navigation"><button class="flashcard-nav-button" onclick="prevCard()">⬅️ Previous</button><button class="flashcard-nav-button" onclick="nextCard()">Next ➡️</button></div> <button id="flashcard-master-mode-btn" class="action-button premium" style="margin-top: 10px; width: 90%;" onclick="navigateToFeature('flashcard-master-mode-screen', null)">🔥 FlashPro Master Mode <span class="lock-icon">🔒</span></button></div><button class="back-button" id="flashcard-viewer-back-button">Topics</button></div>
+    
+    <div id="profile-screen" class="screen">
+      <h2>My Profile 🧑‍🎓</h2> 
+      <div id="profile-premium-status" class="premium-badge" style="display:none;">Premium Member</div>
+      <div class="profile-stat"><strong>Name:</strong> <span id="profileName">N/A</span></div>
+      <div class="profile-stat"><strong>Registered Email:</strong> <span id="profileEmail">N/A</span></div>
+      <div class="profile-stat"><strong>Premium Token:</strong> <span id="profileTokenDisplay">Not Set</span></div>
+      <div class="profile-stat"><strong>Total Quizzes Attempted:</strong> <span id="profileTotalQuizzes">0</span></div>
+      <div class="profile-stat"><strong>Total Correct Answers:</strong> <span id="profileTotalCorrect">0</span></div>
+      <div class="profile-stat"><strong>Last Quick Quiz:</strong> <span id="profileLastQuizScore">0</span>/<span id="profileLastQuizTotalQuestions">N/A</span> (on <span id="profileLastQuizDate">N/A</span>)</div>
+      <button class="back-button" onclick="goBackToHomeFromSubscreen()">Back to Home</button>
+    </div>
+
+    <!-- GAME SCREENS -->
+    <div id="games-selection-screen" class="screen">
+        <h2>Choose a Game 🕹️</h2>
+        <p>Practice your syllabus through fun games!</p>
+        <button class="subject-button game-selector-button" onclick="navigateToScreen('math-equation-game-screen', null); startMathEquationGame();">🧮 Math Equation Whiz</button>
+        <button class="subject-button game-selector-button" onclick="navigateToScreen('science-term-scramble-game-screen', null); startTermScrambleGame();">🔬 Science Term Scramble</button>
+        <button class="subject-button game-selector-button" onclick="navigateToScreen('sst-fact-recall-game-screen', null); startSSTFactRecallGame();">🌍 SST Fact Recall</button>
+        <button class="back-button" onclick="goBackToHomeFromSubscreen()">Home</button>
+    </div>
+    <div id="math-equation-game-screen" class="screen">
+        <h2>Math Equation Whiz 🧠</h2>
+        <div class="game-status-bar">
+            <span id="mathGameTimer">Time: 30s</span> | <span id="mathGameScore">Score: 0</span>
+        </div>
+        <div id="mathGameQuestionArea" class="game-question-display">Loading question...</div>
+        <div id="mathGameInputArea" class="game-input-area"></div>
+        <div id="mathGameFeedback" class="game-feedback"></div>
+        <button class="back-button" onclick="navigateToScreen('games-selection-screen', null); stopMathGame();">Back to Games</button>
+    </div>
+    <div id="science-term-scramble-game-screen" class="screen">
+        <h2>Science Term Scramble 🧪</h2>
+        <div class="game-status-bar">
+             <span id="termScrambleLives">Lives: 3</span> | <span id="termScrambleScore">Score: 0</span>
+        </div>
+        <p id="termScrambleHint" class="game-hint">Hint: General Science</p>
+        <div id="termScrambleWordArea" class="game-question-display">LOADING...</div>
+        <input type="text" id="termScrambleAnswerInput" placeholder="Your answer" class="feedback-input" style="text-transform: uppercase; margin: 10px auto; display:block;">
+        <button class="ask-button" onclick="checkTermScrambleAnswer()">Submit</button>
+        <div id="termScrambleFeedback" class="game-feedback"></div>
+        <button class="back-button" onclick="navigateToScreen('games-selection-screen', null); stopTermScrambleGame();">Back to Games</button>
+    </div>
+    <div id="sst-fact-recall-game-screen" class="screen">
+        <h2>SST Fact Recall 🗺️</h2>
+         <div class="game-status-bar">
+            <span id="sstFactTimer">Time: 60s</span> | <span id="sstFactScore">Score: 0</span>
+        </div>
+        <div id="sstFactQuestionArea" class="game-question-display">Loading question...</div>
+        <div id="sstFactOptionsArea" class="quick-quiz-options-container game-options-area" style="margin-top:15px;"></div>
+        <div id="sstFactFeedback" class="game-feedback"></div>
+        <button class="back-button" onclick="navigateToScreen('games-selection-screen', null); stopSSTFactGame();">Back to Games</button>
+    </div>
+    
+    <!-- UPDATED "Enter Token" Screen -->
+    <div id="enter-token-screen" class="screen">
+        <h1>Activate Premium Access 💎</h1>
+        <p>Enter the premium token you have received to unlock all features.</p>
+        <div id="token-input-container" style="width: 90%; max-width: 380px; margin-top: 20px;">
+            <input type="text" id="token-input" placeholder="Enter Your Token" style="width: 100%; text-align: center; margin-bottom: 10px; text-transform: uppercase; font-size: 1.1em; padding: 12px; box-sizing: border-box;">
+            <button class="action-button premium" onclick="verifyEnteredToken()">Verify Token</button>
+            <div id="token-feedback-message" class="feedback-response" style="margin-top: 20px; min-height: 40px; display: flex; align-items: center; justify-content: center;"></div>
+        </div>
+        <!-- NEW LINK TO REQUEST TOKEN -->
+        <p style="margin-top: 25px; font-size: 0.9em;">Don’t have a token? 
+            <a href="#" onclick="event.preventDefault(); navigateToScreen('token-request-screen', null);" style="color: var(--pw-blue); font-weight: bold; text-decoration: none;">
+                Request here
+            </a>
+        </p>
+        <button class="back-button" onclick="goBackToHomeFromSubscreen()">Back to Home</button>
+    </div>
+    
+    <!-- NEW: Token Request Screen -->
+    <div id="token-request-screen" class="screen">
+        <h1>Request a Premium Token</h1>
+        <p>Please fill in your details to request a token. This will open your mail client.</p>
+        <div style="width: 90%; max-width: 380px; text-align:left; margin-top:10px;">
+            <label for="tokenRequestName" class="feedback-label">Your Name:</label>
+            <input type="text" id="tokenRequestName" class="feedback-input" placeholder="Enter your full name" style="width:100%">
+
+            <label for="tokenRequestEmail" class="feedback-label">Your Email:</label>
+            <input type="email" id="tokenRequestEmail" class="feedback-input" placeholder="Enter your email address" style="width:100%">
+        </div>
+        <p style="background-color: var(--pw-bg-grey); padding: 10px; border-radius: 8px; font-style: italic; font-size: 0.9em; width: 85%; max-width: 360px; margin: 10px 0;">
+            <b>Fixed message in email:</b><br>"Hi, I want to request a premium token."
+        </p>
+        <button class="action-button premium" onclick="submitTokenRequest()" style="margin-top: 10px;">Submit Request</button>
+        <button class="back-button" onclick="navigateToScreen('enter-token-screen', null)">Back</button>
+    </div>
+
+
+    <div id="premium-unlocked-screen" class="screen"> <!-- Shown when user is actually marked as premium by admin-->
+        <div class="confetti">🎉🥳🎊</div>
+        <h1>Congratulations!</h1>
+        <p>Your Lernovix Premium Access is Active!</p>
+        <p>You've unlocked your smartest version!</p>
+        <button class="action-button premium" onclick="navigateToScreen('main-premium-screen', null)">Explore Premium Now 🚀</button>
+    </div>
+    
+    <div id="main-premium-screen" class="screen"> <!-- The hub for already premium users -->
+        <div class="premium-badge">Premium Access</div>
+        <h1 id="premium-welcome-message">Welcome, Premium Member!</h1>
+        <p>Explore your exclusive tools and content.</p>
+        <div class="premium-section">
+            <h3>🧠 AI & Learning Tools</h3>
+            <button class="premium-feature-button" onclick="navigateToFeature('home-screen', null, true)">Video-Like TutorBot Pro (Bhola GPT)</button>
+            <button class="premium-feature-button" onclick="navigateToFeature('notes-subject-screen', null, true)">SmartNotes + PDF Downloads</button>
+        </div>
+        <div class="premium-section">
+            <h3>📚 Practice & Mastery</h3>
+            <button class="premium-feature-button" onclick="navigateToFeature('flashcard-master-mode-screen', null, true)">🔥 FlashPro Master Mode</button>
+            <button class="premium-feature-button" onclick="navigateToFeature('custom-quiz-generator-screen', null, true)">🎯 Custom Quiz Generator (Smart Engine)</button>
+             <button class="premium-feature-button" onclick="alert('AI Practice Tests & More MCQs - Coming Soon!')">🧪 AI Tests & 500+ MCQs/Subject (CS)</button>
+        </div>
+         <div class="premium-section">
+            <h3>📊 Progress & Ranking</h3>
+             <button class="premium-feature-button" onclick="navigateToFeature('performance-analytics-screen', null, true)">📊 Performance Analytics</button>
+             <button class="premium-feature-button" onclick="navigateToFeature('leaderboard-screen', null, true)">🏆 Leaderboard</button>
+        </div>
+        <div class="premium-section">
+            <h3>🛠️ Smart Study Tools & Extras</h3>
+            <button class="premium-feature-button" onclick="alert('Chapter Tracker - Coming Soon!')">📅 Chapter Tracker (CS)</button>
+            <button class="premium-feature-button" onclick="alert('Daily Focus Area - Coming Soon!')">🎯 Daily Focus Area (CS)</button>
+            <button class="premium-feature-button" onclick="alert('Study Streaks - Coming Soon!')">🔥 Study Streaks (CS)</button>
+            <button class="premium-feature-button" onclick="alert('Dark Mode - Coming Soon!')">🌙 Dark Mode (CS)</button>
+            <button class="premium-feature-button" onclick="alert('Ad-Free Experience Active!')">🚫 Ad-Free Experience</button>
+        </div>
+        <button class="back-button" onclick="goBackToHomeFromSubscreen()">Back to Home</button>
+    </div>
+    
+    <div id="custom-quiz-generator-screen" class="screen">
+        <h1>🎯 Custom Quiz Generator</h1>
+        <div class="quiz-setup-area">
+            <label for="customQuizSubject">Select Subject:</label>
+            <select id="customQuizSubject" onchange="populateCustomQuizChapterOptions()"></select>
+            <label for="customQuizChapter">Select Chapter (Optional):</label>
+            <select id="customQuizChapter"></select>
+            <label for="customQuizNumQuestions">Number of Questions (1-10):</label>
+            <input type="number" id="customQuizNumQuestions" min="1" max="10" value="5">
+            <button class="action-button premium" onclick="generateCustomQuiz()">Generate Quiz</button>
+        </div>
+        <div id="customQuizContainer">
+             <p style="margin-top:15px; font-size:0.9em;">Your generated quiz will appear here if MCQs are available for your selection.</p>
+        </div>
+        <button class="back-button" onclick="navigateToScreen('quick-quiz-screen', document.querySelector('.bottom-nav-button[onclick*=\'quick-quiz-screen\']'))">Back to Quizzes</button>
+    </div>
+
+    <div id="flashcard-master-mode-screen" class="screen">
+        <h1 id="masterFlashcardViewerTitle">🔥 FlashPro Master Mode</h1>
+        <div class="flashcard-options">
+            <button id="masterModeFilterAll" class="action-button" onclick="setMasterFlashcardFilter('all')">All Cards</button>
+            <button id="masterModeFilterReview" class="action-button" onclick="setMasterFlashcardFilter('review')">Review Pile</button>
+        </div>
+        <p class="flashcard-counter" id="masterFlashcardCounter">Card 0 / 0</p>
+        <div class="flashcard-viewer-container">
+            <div class="flashcard" id="masterFlashcard" onclick="flipMasterCard()">
+                <div class="flashcard-face flashcard-front" id="masterFlashcardFront">
+                    <div class="card-content-area">Term/Question Side</div>
+                     <button class="tts-button" onclick="event.stopPropagation(); speakMasterCardContent('front')">🔊</button>
+                </div>
+                <div class="flashcard-face flashcard-back" id="masterFlashcardBack">
+                     <div class="card-content-area">Definition/Answer Side</div>
+                     <button class="tts-button" onclick="event.stopPropagation(); speakMasterCardContent('back')">🔊</button>
+                </div>
+            </div>
+             <div class="flashcard-status-controls">
+                <button class="action-button success" id="markLearnedBtn" onclick="toggleMasterCardLearnedStatus(true)">✅ I know this</button>
+                <button class="action-button orange" id="markReviewBtn" onclick="toggleMasterCardLearnedStatus(false)">🔄 Needs Review</button>
+            </div>
+            <div class="flashcard-navigation">
+                <button class="flashcard-nav-button" onclick="prevMasterCard()">⬅️ Previous</button>
+                <button class="flashcard-nav-button" onclick="nextMasterCard()">Next ➡️</button>
+            </div>
+        </div>
+        <button class="back-button" id="masterflashcard-viewer-back-button" onclick="navigateToScreen('flashcards-topic-screen', null)">Back to Topics</button>
+    </div>
+    
+    <div id="performance-analytics-screen" class="screen">
+        <h1>📊 Performance Analytics</h1>
+        <div id="analytics-summary-area" style="width:90%; max-width: 380px;">
+            <p>Overall Average Score: <strong id="overallAverageScore">N/A</strong></p>
+            <h3>Scores by Subject:</h3>
+            <ul id="analytics-summary-list">
+                <!-- Subject scores will be listed here -->
+            </ul>
+        </div>
+         <p style="font-size:0.8em; color:#555; margin-top:15px;">Note: Analytics based on completed Quick Quizzes and Custom Quizzes.</p>
+        <button class="back-button" onclick="goBackToHomeFromSubscreen()">Home</button>
+    </div>
+
+    <div id="leaderboard-screen" class="screen">
+        <h1>🏆 Leaderboard (Local)</h1>
+        <p>See how you rank based on total correct answers!</p>
+        <ol id="leaderboard-list">
+            <!-- Leaderboard items will be listed here -->
+        </ol>
+        <p style="font-size:0.8em; color:#555; margin-top:15px;">This is a local leaderboard for your device. Global/Tournaments coming soon!</p>
+        <button class="back-button" onclick="goBackToHomeFromSubscreen()">Home</button>
+    </div>
+
+
+    <div class="bottom-nav-bar">
+        <button class="bottom-nav-button active" onclick="navigateToScreen('home-screen', this)">🏠<span class="nav-text">Home</span></button>
+        <button class="bottom-nav-button" onclick="navigateToScreen('formulas-subject-screen', this); showFormulaSubjects();">∑<span class="nav-text">Formulas</span></button>
+        <button class="bottom-nav-button" id="bottom-nav-flashcards" onclick="navigateToFeature('flashcards-subject-screen', this);">🗂️<span class="nav-text" id="bottom-nav-flashcards-text">Flashcards</span></button>
+        <button class="bottom-nav-button" id="bottom-nav-quiz" onclick="navigateToFeature('quick-quiz-screen', this);">❓<span class="nav-text" id="bottom-nav-quiz-text">Quiz</span></button>
+    </div>
+
+    <div id="thought-banner-container">
+        <div id="thought-display-area">Loading thought...</div>
+        <div id="thought-update-time"></div>
+    </div>
+
+    <div id="credits-footer-container">
+        Made by Roshan ❤️
+    </div>
+
+  </div>
+
+<script>
+    // --- APP CONFIGURATION ---
+    const GEMINI_API_KEY = "AIzaSyBoy51mNQ_pD_yamX_nbhsZxhNYXSJQ_D4"; // KEY UPDATED
+    const FEEDBACK_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxrDuwY9tKBXS7uq0mEnnRtu_Bqr3-pqqax-gv0PURCcKKZGI7hK4KvvpmJa8OSJIHqhA/exec";
+    const VALID_PREMIUM_TOKENS = ['ABC123', 'XYZ789', 'DEF456', 'TOKEN007', 'PREM999', 'VIP111'];
+    
+    // --- LOCAL STORAGE KEYS (Unique to this app version) ---
+    const PROFILE_KEYS = {
+        NAME: 'studentName_lernovix7_v2', 
+        EMAIL: 'studentEmail_lernovix7_v2',
+        PREMIUM_TOKEN: 'premiumAccessToken_lernovix7_v2', // Key for the user's premium token
+        ATTEMPTED: 'totalQuizzesAttempted_lernovix7_v2',
+        CORRECT: 'totalCorrectAnswers_lernovix7_v2',
+        LAST_SCORE: 'lastQuizScore_lernovix7_v2',
+        LAST_TOTAL: 'lastQuizTotalQuestions_lernovix7_v2',
+        LAST_DATE: 'lastQuizDate_lernovix7_v2',
+        IS_PREMIUM: 'isUserPremium_lernovix7_v2',
+        QUIZ_HISTORY: 'quizHistory_lernovix7_v2', 
+        FLASHCARD_PROGRESS: 'flashcardProgress_lernovix7_v2'
+    };
+
+    // --- STATE VARIABLES ---
+    let currentSelectedEnglishBook = null; let currentSelectedSSTBook = null;
+    let currentSelectedHindiBook = null; let currentSelectedScienceNotesChapter = null;
+    let currentFormulaSubject = ''; let currentFlashcardSubject = ''; let currentFlashcardTopic = '';
+    let currentFlashcards = []; let currentFlashcardIndex = 0;
+    let lastRandomFactIndex = -1; let notificationIntervalId = null; let currentNotificationIndex = 0;
+    let currentQuickQuizQuestionObj = null; let quickQuizScore = 0; let quickQuizQuestionPool = [];
+
+    // Master Flashcard State
+    let currentMasterFlashcards = [];
+    let currentMasterFlashcardIndex = 0;
+    let masterFlashcardFilter = 'all'; 
+    let flashcardProgress = {}; 
+
+    // Custom Quiz State
+    let currentCustomQuiz = [];
+    let currentCustomQuizIndex = 0;
+    let customQuizCurrentScore = 0;
+    
+    // AI Video-like Presentation State
+    let aiSlides = [];
+    let currentAiSlideIndex = 0;
+    let isAiSpeaking = false;
+    let fullAiResponseForReplay = "";
+
+
+    // --- DATA (Class 7 Content - UPDATED) ---
+    const randomFactsArray = ["🍯 Honey never spoils. Archaeologists have found pots of honey in ancient Egyptian tombs that are over 3,000 years old and still perfectly edible.", "Octopuses have three hearts and blue blood. 🐙", "A bolt of lightning is five times hotter than the surface of the sun. ⚡️", "There are more trees on Earth than stars in the Milky Way galaxy. 🌳" ];
+    const thoughtsArray = ["The expert in anything was once a beginner.", "Don't wish it were easier. Wish you were better.", "The secret to getting ahead is getting started.", "Believe you can and you're halfway there."];
+    // ** NEW LARGE QUICK QUIZ POOL **
+    const quickQuizQuestions = [
+        { question: "What is the value of 5⁰?", options: ["5", "0", "1"], correctOptionIndex: 2, explanation: "Any non-zero number raised to the power of 0 is 1." },
+        { question: "What is the sum of interior angles in a triangle?", options: ["90°", "180°", "360°"], correctOptionIndex: 1, explanation: "The sum of the interior angles of any triangle is always 180°." },
+        { question: "Simplify the fraction 8/24.", options: ["1/4", "1/3", "8/3"], correctOptionIndex: 1, explanation: "The Greatest Common Divisor (GCD) of 8 and 24 is 8. Dividing both numerator and denominator by 8 gives 1/3." },
+        { question: "What is the perimeter of a square with a side of 6 cm?", options: ["12 cm", "36 cm", "24 cm"], correctOptionIndex: 2, explanation: "The perimeter of a square is 4 times the side length (4 × 6 cm = 24 cm)." },
+        { question: "Which SI unit is used to measure force?", options: ["Joule (J)", "Watt (W)", "Newton (N)"], correctOptionIndex: 2, explanation: "The standard unit of force in the International System of Units (SI) is the Newton (N)." },
+        { question: "What is the process of a liquid changing into a gas called?", options: ["Condensation", "Evaporation", "Sublimation"], correctOptionIndex: 1, explanation: "Evaporation is the process where a liquid turns into a gas or vapor." },
+        { question: "What is the green pigment found in plants that helps in photosynthesis?", options: ["Chlorophyll", "Hemoglobin", "Melanin"], correctOptionIndex: 0, explanation: "Chlorophyll is the pigment that gives plants their green color and absorbs light for photosynthesis." },
+        { question: "What is the boiling point of water at standard atmospheric pressure?", options: ["90°C", "100°C", "110°C"], correctOptionIndex: 1, explanation: "Water boils at 100 degrees Celsius (212°F) at sea level." },
+        { question: "Who was Akbar's grandfather?", options: ["Humayun", "Jahangir", "Babur"], correctOptionIndex: 2, explanation: "The Mughal lineage is Babur → Humayun → Akbar." },
+        { question: "The national capital of India is:", options: ["Mumbai", "New Delhi", "Kolkata"], correctOptionIndex: 1, explanation: "New Delhi is the official capital of the Republic of India." },
+        { question: "What does the plural form of 'child'?", options: ["Childs", "Childrens", "Children"], correctOptionIndex: 2, explanation: "'Children' is the correct irregular plural form of 'child'." },
+        { question: "What is the opposite of 'brave'?", options: ["Strong", "Coward", "Hero"], correctOptionIndex: 1, explanation: "A coward is someone who is not brave." },
+        { question: "In Hindi, what does 'पुस्तक' (pustak) mean?", options: ["Pen", "Book", "School"], correctOptionIndex: 1, explanation: "'पुस्तक' is the Hindi word for 'Book'." },
+        { question: "Calculate 25% of 80.", options: ["10", "20", "25"], correctOptionIndex: 1, explanation: "25% is the same as 1/4. So, 1/4 of 80 is 20." },
+        { question: "What is the mean (average) of 5, 7, and 9?", options: ["7", "6", "8"], correctOptionIndex: 0, explanation: "Mean = (5 + 7 + 9) / 3 = 21 / 3 = 7." },
+        { question: "Which organ pumps blood throughout the human body?", options: ["Lungs", "Brain", "Heart"], correctOptionIndex: 2, explanation: "The heart is the muscular organ that pumps blood through the circulatory system." },
+        { question: "Rusting of iron requires both oxygen and...", options: ["Water", "Carbon Dioxide", "Nitrogen"], correctOptionIndex: 0, explanation: "Rusting is an oxidation process that occurs in the presence of both oxygen and water (or moisture)." },
+        { question: "What is the hardest natural substance on Earth?", options: ["Gold", "Diamond", "Iron"], correctOptionIndex: 1, explanation: "Diamond is the hardest known natural substance, topping the Mohs scale of hardness at 10." },
+        { question: "A mixture of sand and iron filings can be separated using a:", options: ["Filter", "Sieve", "Magnet"], correctOptionIndex: 2, explanation: "Iron is magnetic, so it can be separated from non-magnetic sand using a magnet." },
+        { question: "What form of government means 'government by the people'?", options: ["Monarchy", "Democracy", "Dictatorship"], correctOptionIndex: 1, explanation: "Democracy is a system of government where citizens exercise power by voting." },
+        { question: "The imaginary line passing through India at 23.5°N is called:", options: ["Tropic of Capricorn", "Equator", "Tropic of Cancer"], correctOptionIndex: 2, explanation: "The Tropic of Cancer passes through the middle of India." },
+        { question: "Who founded the Mughal dynasty in India?", options: ["Akbar", "Babur", "Shah Jahan"], correctOptionIndex: 1, explanation: "Babur was the founder and first Emperor of the Mughal dynasty." },
+        { question: "If the speed of a car is 60 km/hr, how much time will it take to cover 180 km?", options: ["2 hours", "4 hours", "3 hours"], correctOptionIndex: 2, explanation: "Time = Distance / Speed = 180 km / 60 km/hr = 3 hours." },
+        { question: "The probability of getting a 'head' when tossing a fair coin is:", options: ["1", "0.5", "0.25"], correctOptionIndex: 1, explanation: "There are two equally likely outcomes (head or tail), so the probability of one is 1/2 or 0.5." },
+        { question: "Which animal that gives birth to live young ones is called?", options: ["Oviparous", "Viviparous", "Herbivorous"], correctOptionIndex: 1, explanation: "Viviparous animals give birth to live offspring, as opposed to oviparous animals which lay eggs." },
+        { question: "India's national flower is the:", options: ["Rose", "Lotus", "Sunflower"], correctOptionIndex: 1, explanation: "The Lotus is the national flower of India and holds a significant place in Indian culture and art." },
+        { question: "When is India's Republic Day celebrated?", options: ["15 August", "26 January", "2 October"], correctOptionIndex: 1, explanation: "Republic Day is celebrated on 26th January, marking the date when the Constitution of India came into effect." },
+        { question: "Simplify: (3+5) × 2", options: ["13", "16", "10"], correctOptionIndex: 1, explanation: "According to order of operations (BODMAS/PEMDAS), solve the bracket first: (8) × 2 = 16." },
+        { question: "An animal that lacks a backbone is called an:", options: ["Vertebrate", "Invertebrate", "Mammal"], correctOptionIndex: 1, explanation: "Invertebrates are animals that neither possess nor develop a vertebral column (backbone)." },
+        { question: "Which metal is liquid at room temperature?", options: ["Iron", "Gold", "Mercury"], correctOptionIndex: 2, explanation: "Mercury is the only metal that is a liquid at standard conditions for temperature and pressure." },
+        { question: "Who was the first President of India?", options: ["Jawaharlal Nehru", "Dr. Rajendra Prasad", "Sardar Patel"], correctOptionIndex: 1, explanation: "Dr. Rajendra Prasad was the first President of the Republic of India." },
+        { question: "The process of a solid turning directly into a gas is called:", options: ["Evaporation", "Condensation", "Sublimation"], correctOptionIndex: 2, explanation: "Sublimation is the transition of a substance directly from the solid to the gas state, without passing through the liquid state (e.g., dry ice, camphor)." },
+        { question: "The acid found in vinegar is:", options: ["Citric Acid", "Acetic Acid", "Lactic Acid"], correctOptionIndex: 1, explanation: "Vinegar's sour taste and pungent smell are primarily due to acetic acid." }
+    ]; 
+    
+    // ** NEW LARGE FLASHCARD DATASET **
+    const flashcardData = {
+        maths: {
+            title: "📘 Mathematics",
+            topics: {
+                knowing_our_numbers: {
+                    title: "Knowing Our Numbers",
+                    cards: [
+                        { term: "What are natural numbers?", definition: "<b>Answer:</b> Numbers starting from 1, like 1, 2, 3…<br><br><b>Explanation:</b> Natural numbers are counting numbers we use in daily life." },
+                        { term: "What are whole numbers?", definition: "<b>Answer:</b> Natural numbers plus 0; i.e., 0, 1, 2, 3…<br><br><b>Explanation:</b> Whole numbers include zero along with natural numbers." },
+                        { term: "What is the place value of 5 in 3548?", definition: "<b>Answer:</b> 500<br><br><b>Explanation:</b> In 3548, 5 is in the hundreds place → 5×100=500." },
+                        { term: "What is the face value of 5 in 3548?", definition: "<b>Answer:</b> 5<br><br><b>Explanation:</b> Face value is the digit itself, regardless of position." },
+                        { term: "Expand 7230 in standard form.", definition: "<b>Answer:</b> 7000 + 200 + 30 + 0<br><br><b>Explanation:</b> Each digit’s place value expressed separately." },
+                        { term: "Write Roman numeral for 59.", definition: "<b>Answer:</b> LIX<br><br><b>Explanation:</b> L=50, IX=9, so 50+9=59." },
+                        { term: "How to write 8 crore in numbers?", definition: "<b>Answer:</b> 8,00,00,000<br><br><b>Explanation:</b> Indian system places commas after lakh and crore." },
+                        { term: "Round 4825 to the nearest hundred.", definition: "<b>Answer:</b> 4800<br><br><b>Explanation:</b> Look at tens digit (2); since it is below 5, round down." },
+                        { term: "What is the predecessor of 10,000?", definition: "<b>Answer:</b> 9,999<br><br><b>Explanation:</b> The number that comes just before 10,000." },
+                        { term: "What is the successor of 999?", definition: "<b>Answer:</b> 1000<br><br><b>Explanation:</b> The number that comes just after 999." }
+                    ]
+                },
+                fractions: {
+                    title: "Fractions",
+                    cards: [
+                        { term: "What is a fraction?", definition: "<b>Answer:</b> A number representing a part of a whole, written as a/b.<br><br><b>Explanation:</b> For example, 1/2 means 1 part of a total of 2 equal parts." },
+                        { term: "Define numerator.", definition: "<b>Answer:</b> The top number of a fraction.<br><br><b>Explanation:</b> It shows how many parts of the whole are being considered." },
+                        { term: "Define denominator.", definition: "<b>Answer:</b> The bottom number of a fraction.<br><br><b>Explanation:</b> It shows the total number of equal parts the whole is divided into." },
+                        { term: "How do you add fractions like 1/4 + 1/2?", definition: "<b>Answer:</b> 3/4<br><br><b>Explanation:</b> Find a common denominator (4), convert 1/2 to 2/4, then add the numerators: 1/4 + 2/4 = 3/4." },
+                        { term: "How do you multiply fractions like 2/5 × 3/4?", definition: "<b>Answer:</b> 6/20 or 3/10<br><br><b>Explanation:</b> Multiply the numerators (2×3=6) and multiply the denominators (5×4=20)." },
+                        { term: "How do you divide fractions like 3/4 ÷ 2/5?", definition: "<b>Answer:</b> 15/8 or 1 7/8<br><br><b>Explanation:</b> Multiply the first fraction by the reciprocal of the second: 3/4 × 5/2 = 15/8." },
+                        { term: "Convert the mixed fraction 2½ to an improper fraction.", definition: "<b>Answer:</b> 5/2<br><br><b>Explanation:</b> (Denominator × Whole Number) + Numerator → (2 × 2) + 1 = 5. Keep the denominator." }
+                    ]
+                },
+                rational_numbers: {
+                    title: "Rational Numbers",
+                    cards: [
+                         { term: "What is a rational number?", definition: "<b>Answer:</b> A number that can be written in the form p/q, where p and q are integers and q≠0.<br><br><b>Explanation:</b> Examples: -2/3, 0, 5, 7/1." },
+                         { term: "Is 0 a rational number?", definition: "<b>Answer:</b> Yes<br><br><b>Explanation:</b> 0 can be written as 0/1, which fits the p/q format." },
+                         { term: "What is the reciprocal (or multiplicative inverse) of -2/7?", definition: "<b>Answer:</b> -7/2<br><br><b>Explanation:</b> The reciprocal is found by flipping the fraction. The sign remains the same." },
+                         { term: "How do you multiply two rational numbers, e.g., -3/4 × 2/5?", definition: "<b>Answer:</b> -6/20 or -3/10<br><br><b>Explanation:</b> Multiply the numerators (-3 × 2 = -6) and the denominators (4 × 5 = 20)." },
+                         { term: "What is the sum of a rational number and its negative (additive inverse)?", definition: "<b>Answer:</b> 0<br><br><b>Explanation:</b> For example, 3/5 + (-3/5) = 0. This is the additive inverse property." }
+                    ]
+                },
+                decimals: {
+                    title: "Decimals",
+                     cards: [
+                         { term: "What is a decimal number?", definition: "<b>Answer:</b> A number with a dot (.) separating the whole number part from the fractional part.<br><br><b>Explanation:</b> In 3.75, 3 is the whole part and 0.75 is the fractional part." },
+                         { term: "How do you multiply decimals like 0.3 × 0.2?", definition: "<b>Answer:</b> 0.06<br><br><b>Explanation:</b> Multiply the numbers ignoring the decimals (3×2=6). Then, count the total decimal places in the original numbers (2) and place the decimal in the answer." },
+                         { term: "How do you divide 0.8 by 0.4?", definition: "<b>Answer:</b> 2<br><br><b>Explanation:</b> You can move the decimal one place to the right in both numbers to make it 8 ÷ 4, which equals 2." },
+                         { term: "What is the place value of 6 in the number 4.62?", definition: "<b>Answer:</b> 6 tenths or 0.6<br><br><b>Explanation:</b> The first position after the decimal point represents tenths." }
+                     ]
+                },
+                exponents_powers: {
+                    title: "Exponents and Powers",
+                     cards: [
+                        { term: "What is an exponent (or power)?", definition: "<b>Answer:</b> It indicates how many times to multiply a base number by itself.<br><br><b>Explanation:</b> In 2³, the base is 2 and the exponent is 3, meaning 2 × 2 × 2." },
+                        { term: "What is the law for multiplying powers with the same base (aᵐ × aⁿ)?", definition: "<b>Answer:</b> aᵐ⁺ⁿ<br><br><b>Explanation:</b> Keep the base and add the exponents. For example, 2² × 2³ = 2⁵." },
+                        { term: "What is the law for dividing powers with the same base (aᵐ ÷ aⁿ)?", definition: "<b>Answer:</b> aᵐ⁻ⁿ<br><br><b>Explanation:</b> Keep the base and subtract the exponents. For example, 3⁴ ÷ 3² = 3²." },
+                        { term: "What is the value of any non-zero number raised to the power of 0 (a⁰)?", definition: "<b>Answer:</b> 1<br><br><b>Explanation:</b> Any base (except 0) raised to the power of 0 is always equal to 1. E.g., 7⁰ = 1." }
+                    ]
+                },
+                algebraic_expressions: {
+                    title: "Algebraic Expressions",
+                     cards: [
+                         { term: "What is an algebraic expression?", definition: "<b>Answer:</b> A combination of variables (like x, y), constants (like 5, -2), and arithmetic operations (+, -, ×, ÷).<br><br><b>Explanation:</b> An example is 3x + 5." },
+                         { term: "What are 'like terms'?", definition: "<b>Answer:</b> Terms that have the same variable raised to the same power.<br><br><b>Explanation:</b> For example, 3x and 5x are like terms because they both contain 'x'. They can be combined (3x + 5x = 8x)." },
+                         { term: "How do you apply the distributive property to a(b+c)?", definition: "<b>Answer:</b> It becomes ab + ac.<br><br><b>Explanation:</b> You multiply the term outside the parenthesis by each term inside. Example: 2(x+3) = 2x + 6." },
+                         { term: "What does the identity (a+b)² expand to?", definition: "<b>Answer:</b> a² + 2ab + b²<br><br><b>Explanation:</b> This is a standard algebraic identity for squaring a binomial." }
+                     ]
+                },
+                simple_linear_equations: {
+                    title: "Simple Linear Equations",
+                    cards: [
+                         { term: "What is a simple linear equation?", definition: "<b>Answer:</b> An equation where the highest power of the variable is 1.<br><br><b>Explanation:</b> The general form is ax + b = c, like 2x + 5 = 15." },
+                         { term: "What is transposition in an equation?", definition: "<b>Answer:</b> Moving a term from one side of the equation to the other by changing its sign.<br><br><b>Explanation:</b> In x + 5 = 12, transposing +5 to the right side makes it x = 12 - 5." },
+                         { term: "How would you solve the equation 3x - 4 = 11?", definition: "<b>Answer:</b> x = 5<br><br><b>Explanation:</b> 1. Transpose -4: 3x = 11 + 4 → 3x = 15. 2. Divide by 3: x = 15 / 3 → x = 5." }
+                    ]
+                },
+                comparing_quantities: {
+                    title: "Comparing Quantities",
+                     cards: [
+                         { term: "How do you calculate a percentage?", definition: "<b>Answer:</b> (Part / Whole) × 100<br><br><b>Explanation:</b> To find what percentage 20 is of 80, you calculate (20 / 80) × 100 = 25%." },
+                         { term: "How do you calculate Profit?", definition: "<b>Answer:</b> Profit = Selling Price (SP) - Cost Price (CP)<br><br><b>Explanation:</b> You make a profit if you sell an item for more than you bought it for." },
+                         { term: "How do you calculate Discount?", definition: "<b>Answer:</b> Discount = Marked Price (MP) - Selling Price (SP)<br><br><b>Explanation:</b> The discount is the reduction from the original price tag (MP)." },
+                         { term: "What is the formula for Simple Interest (SI)?", definition: "<b>Answer:</b> SI = (P × R × T) / 100<br><br><b>Explanation:</b> P is Principal (initial amount), R is Rate of interest per year, and T is Time in years." }
+                    ]
+                },
+                triangles: {
+                     title: "Triangles",
+                    cards: [
+                        { term: "What is the sum of the angles in any triangle?", definition: "<b>Answer:</b> 180°<br><br><b>Explanation:</b> The three interior angles of any triangle always add up to 180 degrees." },
+                        { term: "What is an equilateral triangle?", definition: "<b>Answer:</b> A triangle with all three sides of equal length.<br><br><b>Explanation:</b> All its angles are also equal (60° each)." },
+                        { term: "What is an isosceles triangle?", definition: "<b>Answer:</b> A triangle with two sides of equal length.<br><br><b>Explanation:</b> The two angles opposite the equal sides are also equal." },
+                        { term: "What is a scalene triangle?", definition: "<b>Answer:</b> A triangle where all three sides have different lengths.<br><br><b>Explanation:</b> All three angles are also different." },
+                        { term: "What is the Pythagoras theorem?", definition: "<b>Answer:</b> In a right-angled triangle, H² = P² + B² (Hypotenuse² = Perpendicular² + Base²).<br><br><b>Explanation:</b> This theorem relates the lengths of the three sides of a right triangle." }
+                    ]
+                },
+                congruence_of_triangles: {
+                    title: "Congruence of Triangles",
+                    cards: [
+                         { term: "What does it mean for two triangles to be congruent?", definition: "<b>Answer:</b> They have the exact same size and shape. They can be perfectly superimposed on each other.<br><br><b>Explanation:</b> Congruent is a fancy word for identical." },
+                         { term: "What is the SSS Congruence rule?", definition: "<b>Answer:</b> Side-Side-Side. If three sides of one triangle are equal to the three corresponding sides of another triangle, the triangles are congruent.<br><br><b>Explanation:</b> You only need to know the sides are equal to know the whole triangle is identical." },
+                         { term: "What is the SAS Congruence rule?", definition: "<b>Answer:</b> Side-Angle-Side. If two sides and the *included* angle of one triangle are equal to the corresponding parts of another triangle, they are congruent.<br><br><b>Explanation:</b> The angle must be between the two known sides." },
+                         { term: "What is the ASA Congruence rule?", definition: "<b>Answer:</b> Angle-Side-Angle. If two angles and the *included* side of one triangle are equal to the corresponding parts of another, they are congruent.<br><br><b>Explanation:</b> The side must be between the two known angles." },
+                         { term: "What is the RHS Congruence rule?", definition: "<b>Answer:</b> Right-angle-Hypotenuse-Side. If in two right-angled triangles, the hypotenuse and one side are equal, they are congruent.<br><br><b>Explanation:</b> This is a special rule only for right-angled triangles." }
+                    ]
+                },
+                perimeter_area: {
+                    title: "Perimeter and Area",
+                     cards: [
+                         { term: "What is Perimeter?", definition: "<b>Answer:</b> The total distance around the boundary of a 2D shape.<br><br><b>Explanation:</b> It's like walking along the edges of a field and measuring the total distance." },
+                         { term: "What is Area?", definition: "<b>Answer:</b> The amount of surface enclosed within the boundary of a 2D shape.<br><br><b>Explanation:</b> It's like measuring the amount of carpet needed to cover a floor." },
+                         { term: "Formulas for a Square (side 's')", definition: "<b>Answer:</b> Perimeter = 4 × s<br>Area = s × s (or s²)<br><br><b>Explanation:</b> Simple formulas for a shape with four equal sides." },
+                         { term: "Formulas for a Rectangle (length 'l', breadth 'b')", definition: "<b>Answer:</b> Perimeter = 2 × (l + b)<br>Area = l × b<br><br><b>Explanation:</b> Key formulas for rectangular shapes." },
+                         { term: "Formula for the Area of a Triangle", definition: "<b>Answer:</b> ½ × base × height<br><br><b>Explanation:</b> This formula works for all types of triangles." },
+                         { term: "Formulas for a Circle (radius 'r')", definition: "<b>Answer:</b> Circumference = 2 × π × r<br>Area = π × r²<br><br><b>Explanation:</b> Circumference is the perimeter of a circle. π (pi) is approximately 3.14." }
+                     ]
+                },
+                data_handling_probability: {
+                    title: "Data Handling and Probability",
+                    cards: [
+                         { term: "What is the Mean (or Average)?", definition: "<b>Answer:</b> (Sum of all observations) / (Number of observations)<br><br><b>Explanation:</b> It gives a central value for the data. Mean of 2, 3, 7 is (2+3+7)/3 = 4." },
+                         { term: "What is the Median?", definition: "<b>Answer:</b> The middle value in a data set that has been arranged in order.<br><br><b>Explanation:</b> In the data {2, 3, 7, 8, 10}, the median is 7." },
+                         { term: "What is the Mode?", definition: "<b>Answer:</b> The value that appears most frequently in a data set.<br><br><b>Explanation:</b> In the data {2, 3, 3, 4, 5}, the mode is 3." },
+                         { term: "How is Probability calculated?", definition: "<b>Answer:</b> (Number of favorable outcomes) / (Total number of possible outcomes)<br><br><b>Explanation:</b> The probability of rolling a 4 on a standard die is 1/6." }
+                    ]
+                }
+            }
+        },
+        science: {
+            title: "🧪 Science",
+            topics: {
+                ch5_acids_bases_salts: {
+                    title: "Ch 5: Acids, Bases, and Salts",
+                    cards: [
+                        { term: "What is an Acid?", definition: "A substance that tastes sour, turns blue litmus paper red, and has a pH less than 7. E.g., Lemon juice (citric acid)." },
+                        { term: "What is a Base?", definition: "A substance that tastes bitter, feels soapy, and turns red litmus paper blue. It has a pH greater than 7. E.g., Baking soda." },
+                        { term: "What is Neutralisation?", definition: "The reaction between an acid and a base is known as neutralisation. Salt and water are produced in this process with the evolution of heat." }
+                    ]
+                },
+                ch6_physical_chemical_changes: {
+                    title: "Ch 6: Physical & Chemical Changes",
+                    cards: [
+                        { term: "Physical Change", definition: "A change in which only the physical properties (like shape, size, color, state) of a substance change. No new substance is formed. E.g., melting of ice." },
+                        { term: "Chemical Change", definition: "A change in which one or more new substances are formed. It is usually irreversible. E.g., rusting of iron." }
+                    ]
+                }
+            }
+        },
+        sst: {
+            title: "📜 Social Science",
+            topics: {
+                ch3_delhi_sultans: {
+                    title: "History: The Delhi Sultans",
+                    cards: [
+                        { term: "Raziyya Sultan", definition: "Daughter of Sultan Iltutmish, she was the only female Muslim ruler of the Delhi Sultanate (1236-1240)." },
+                        { term: "Iqta' System", definition: "A system where the empire's territories ('iqtas') were assigned to nobles, who collected revenue and maintained law and order." }
+                    ]
+                },
+                ch3_our_changing_earth: {
+                    title: "Geography: Our Changing Earth",
+                    cards: [
+                        { term: "Lithospheric plates", definition: "The Earth's crust consists of several large and some small, rigid, irregularly shaped plates (slabs) which carry continents and the ocean floor." },
+                        { term: "Earthquake Focus vs Epicenter", definition: "<b>Focus:</b> The place in the crust where the earthquake movement starts.<br><br><b>Epicenter:</b> The place on the surface directly above the focus." }
+                    ]
+                }
+            }
+        }
+    };
+    
+    const allMCQsData = { science: { 1: { title: "Ch 1: Nutrition in Plants", mcqs: [ { q: "The food making process in plants is called:", o: ["Respiration", "Photosynthesis", "Transpiration", "Digestion"], c: 1, e: "Photosynthesis is the process by which green plants use sunlight to synthesize foods from carbon dioxide and water." }, {q: "Which part of the plant gets carbon dioxide from the air for photosynthesis?", o: ["Root hair", "Stomata", "Leaf veins", "Sepals"], c: 1, e: "Stomata are tiny pores present on the surface of leaves through which gaseous exchange occurs."} ] }, 2: { title: "Ch 2: Heat", mcqs: [ { q: "Heat from the sun reaches us by:", o: ["Conduction", "Convection", "Radiation", "All of these"], c: 2, e: "Radiation does not require a medium to transfer heat, which is why it can travel through the vacuum of space." }, {q: "A reliable measure of the hotness of an object is its:", o: ["temperature", "heat", "energy", "calories"], c: 0, e: "Temperature is the degree or intensity of heat present in a substance or object."} ] } }, maths: { 1: { title: "Ch 1: Integers", mcqs: [ { q: "The value of (-2) x (-3) x 4 is:", o: ["-24", "24", "-10", "10"], c: 1, e: "The product of two negative integers is positive. So, (-2) x (-3) = 6. Then, 6 x 4 = 24." }, { q: "What is the additive inverse of -7?", o: ["-7", "7", "1/7", "0"], c: 1, e: "The additive inverse of a number is what you add to it to get zero. -7 + 7 = 0."} ] }, 2: { title: "Ch 2: Simple Equations", mcqs: [ { q: "If 4x - 7 = 21, then x is:", o: ["5", "6", "7", "8"], c: 2, e: "4x = 21 + 7 => 4x = 28 => x = 28 / 4 => x = 7. A simple typo was fixed here." }, { q: "Which of the following is an equation?", o: ["x + 3 > 0", "2x - 1 < 5", "x - 5 = 0", "7x + 1"], c: 2, e: "An equation has an equals sign (=) with expressions on both sides."} ] } }, english: { honeycomb: { title: "Honeycomb", chapters: { ch1: { title: "Three Questions", mcqs: [{q:"Who did the king go to for answers?", o:["His Ministers","A Wise Magician","A Hermit","The Queen"], c:2, e:"The king went to a wise hermit who lived in the woods."}]}, ch2: { title: "A Gift of Chappals", mcqs: [{q:"What did the music-master's chappals look like?", o:["New and shiny", "Old and scruffy", "Decorated with bells", "Made of silver"], c:1, e: "They were old, dusty, and showed the marks of the toes."}]} } }, an_alien_hand: { title: "An Alien Hand", chapters: { ch1: { title: "The Tiny Teacher", mcqs: [{q:"Which creature is called the 'tiny teacher'?", o:["Spider","Ant","Bee","Worm"], c:1, e:"The story describes the life of an ant as impressively disciplined and hardworking, making it a 'tiny teacher'."}]} } } }, sst: { history: { title: "History (Our Pasts - II)", chapters: { ch1: { title: "Tracing Changes Through A Thousand Years", mcqs: [{q:"Who is a 'cartographer'?", o:["A map maker","An artist","A historian","A traveler"],c:0, e:"A cartographer is a person who draws or produces maps."}]}, ch2: { title: "New Kings and Kingdoms", mcqs: [{q:"Who wrote 'Kitab-al-Hind'?", o:["Ibn Battuta", "Al-Biruni", "Firdausi", "Amir Khusrau"],c:1, e:"Al-Biruni, an Arab scholar, wrote the famous historical text 'Kitab-al-Hind'."}]} } }, geography: { title: "Geography (Our Environment)", chapters: { ch1: { title: "Environment", mcqs: [{q:"Which is not a natural ecosystem?", o:["Desert","Forest","Aquarium","Lake"],c:2, e:"An aquarium is a man-made, artificial ecosystem."}]} } }, civics: { title: "Civics (Social and Political Life - II)", chapters: { ch1: { title: "On Equality", mcqs: [{q:"The mid-day meal scheme was first implemented in:", o:["Kerala","Tamil Nadu","Karnataka","Delhi"],c:1, e:"Tamil Nadu was the first state in India to introduce this scheme in 2001."}]} } } }, hindi: { vasant: { title: "वसंत", chapters: { ch1: { title: "हम पंछी उन्मुक्त गगन के", mcqs: [{q:"पंछी कहाँ रहकर गाना नहीं गा पाएंगे?", o:["खुले आसमान में","सोने के पिंजरे में","नीम के पेड़ पर","नदी के किनारे"], c:1, e:"कविता के अनुसार, पंछी सोने के पिंजरे में बंद होकर अपनी खुशी के गीत नहीं गा पाएंगे।"}]}} } , mahabharat: { title: "बाल महाभारत कथा", chapters: { ch1: { title: "देवव्रत", mcqs: [{q:"राजा शांतनु के पुत्र का क्या नाम था?", o:["भीम","विचित्रवीर्य","देवव्रत","अर्जुन"], c:2, e:"राजा शांतनु और गंगा के पुत्र का नाम देवव्रत था, जो बाद में भीष्म कहलाए।"}]} } } } };
+    const scienceNotesData = { 1: { title: "Ch 1: Nutrition in Plants", content: `<h3>Nutrition in Plants (SmartNote)</h3><p>Green plants are 'autotrophs' - they make their own food. This process is called <b>photosynthesis</b>.</p><h4>Requirements for Photosynthesis:</h4><ul><li><b>Sunlight:</b> The ultimate source of energy.</li><li><b>Chlorophyll:</b> The green pigment in leaves that traps sunlight.</li><li><b>Carbon Dioxide:</b> Taken from the air through tiny pores called 'stomata' on the leaves.</li><li><b>Water:</b> Absorbed from the soil by the roots.</li></ul><h4>Equation:</h4><p>Carbon Dioxide + Water  -- (in presence of Sunlight & Chlorophyll) -->  Carbohydrate (Food) + Oxygen</p><p><b>Key Premium Insights:</b> Details on parasitic plants (Cuscuta), insectivorous plants (Pitcher plant), and symbiotic relationships (Lichens).</p>` }, 5: { title: "Ch 5: Acids, Bases and Salts", content: `<h3>Acids, Bases & Salts (SmartNote)</h3><p>We can test if a substance is acidic or basic using 'indicators'.</p><h4>Common Indicators:</h4><ul><li><b>Litmus:</b> A natural indicator. Acids turn blue litmus red. Bases turn red litmus blue.</li><li><b>Turmeric:</b> Turns reddish-brown with a base.</li><li><b>China Rose:</b> Turns acidic solutions to dark pink (magenta) and basic solutions to green.</li></ul><h4>Neutralisation:</h4><p>When an acid reacts with a base, they cancel each other's effect. This reaction is called neutralisation. Salt and water are produced in this process.<br><b>Acid + Base → Salt + Water (+ Heat is evolved)</b></p>`}, 6: { title: "Ch 6: Physical & Chemical Changes", content: `<h3>Physical and Chemical Changes (SmartNote)</h3><p>Changes are happening all around us. They can be of two types.</p><h4>Physical Change:</h4><ul><li>A change affecting only the physical properties like shape, size, color or state.</li><li>No new substance is formed.</li><li>Examples: Melting of ice, cutting a paper, boiling water.</li></ul><h4>Chemical Change:</h4><ul><li>A change that results in the formation of one or more new substances.</li><li>It is also called a chemical reaction.</li><li>Examples: Rusting of iron, burning of wood, digestion of food.</li></ul><p><b>Key Premium Insights:</b> Detailed explanation of crystallisation as a physical change and the chemical reactions for rusting (Iron + Oxygen + Water → Iron Oxide).</p>` } };
+    
+    // ** NEW LARGE FORMULA DATASET **
+    const formulaData = {
+        maths: {
+            title: "Mathematics 📘 - Class 7",
+            topics: {
+                numbers_and_fractions: {
+                    title: "Numbers & Fractions",
+                    formulas: [
+                        { name: "Expanded Form", formula: "e.g., 5432 = 5000 + 400 + 30 + 2" },
+                        { name: "Fraction Multiplication", formula: "(a/b) × (c/d) = (a×c)/(b×d)" },
+                        { name: "Fraction Division", formula: "(a/b) ÷ (c/d) = (a/b) × (d/c)" },
+                        { name: "Rounding Rule", formula: "For rounding, look at the digit to the right. If it's 5 or more, round up; if less than 5, round down." }
+                    ]
+                },
+                exponents: {
+                    title: "Exponents and Powers",
+                    formulas: [
+                        { name: "Product Law", formula: "a<sup>m</sup> × a<sup>n</sup> = a<sup>m+n</sup>" },
+                        { name: "Quotient Law", formula: "a<sup>m</sup> / a<sup>n</sup> = a<sup>m-n</sup>" },
+                        { name: "Power Law", formula: "(a<sup>m</sup>)<sup>n</sup> = a<sup>m×n</sup>" },
+                        { name: "Zero Exponent", formula: "a<sup>0</sup> = 1 (for any non-zero 'a')" }
+                    ]
+                },
+                algebraic_expressions: {
+                    title: "Algebraic Expressions",
+                    formulas: [
+                        { name: "Distributive Property", formula: "a(b + c) = ab + ac" },
+                        { name: "Combine Like Terms", formula: "e.g., 3x + 5x = 8x" },
+                        { name: "Identity: (a+b)²", formula: "(a+b)² = a² + 2ab + b²" },
+                        { name: "Simple Equation", formula: "General form: ax + b = c. Use transposition to solve for x." }
+                    ]
+                },
+                commercial_maths: {
+                    title: "Commercial Mathematics",
+                    formulas: [
+                        { name: "Percentage", formula: "Percentage = (Part / Whole) × 100" },
+                        { name: "Profit", formula: "Profit = Selling Price (SP) - Cost Price (CP)" },
+                        { name: "Loss", formula: "Loss = Cost Price (CP) - Selling Price (SP)" },
+                        { name: "Discount", formula: "Discount = Marked Price (MP) - Selling Price (SP)" },
+                        { name: "Simple Interest (SI)", formula: "SI = (P × R × T) / 100" }
+                    ]
+                },
+                perimeter_area: {
+                    title: "Perimeter and Area",
+                    formulas: [
+                        { name: "Perimeter of Square", formula: "4 × side" },
+                        { name: "Area of Square", formula: "side²" },
+                        { name: "Perimeter of Rectangle", formula: "2(length + breadth)" },
+                        { name: "Area of Rectangle", formula: "length × breadth" },
+                        { name: "Area of Triangle", formula: "½ × base × height" },
+                        { name: "Circumference of Circle", formula: "2πr" },
+                        { name: "Area of Circle", formula: "πr²" }
+                    ]
+                },
+                geometry_basics: {
+                    title: "Geometry Basics",
+                    formulas: [
+                        { name: "Sum of angles in a triangle", formula: "180°" },
+                        { name: "Pythagoras Theorem", formula: "Hypotenuse² = Base² + Perpendicular²<br>(Only for right-angled triangles)" },
+                        { name: "Congruence Criteria", formula: "SSS, SAS, ASA, RHS" }
+                    ]
+                },
+                data_handling: {
+                     title: "Data Handling & Probability",
+                     formulas: [
+                         { name: "Mean (Average)", formula: "Sum of observations / Number of observations" },
+                         { name: "Median", formula: "The middle value in an ordered set of data." },
+                         { name: "Mode", formula: "The value that occurs most frequently." },
+                         { name: "Probability", formula: "Number of favorable outcomes / Total number of outcomes" }
+                     ]
+                }
+            }
+        },
+        science: {
+            title: "Science 🔬 - Class 7",
+            topics: {
+                motion_time: {
+                    title: "Motion and Time",
+                    formulas: [
+                        { name: "Speed", formula: "Speed = Total Distance / Total Time" },
+                        { name: "Distance", formula: "Distance = Speed × Time" },
+                        { name: "Time", formula: "Time = Total Distance / Speed" }
+                    ]
+                },
+                heat: {
+                    title: "Heat & Temperature",
+                    formulas: [
+                        { name: "Celsius to Fahrenheit", formula: "°F = (°C × 9/5) + 32" },
+                        { name: "Fahrenheit to Celsius", formula: "°C = (°F - 32) × 5/9" },
+                        { name: "Celsius to Kelvin", formula: "K = °C + 273.15" }
+                    ]
+                },
+                constants_conversions: {
+                    title: "Basic Conversions",
+                    formulas: [
+                        { name: "Length", formula: "1 km = 1000 m<br>1 m = 100 cm<br>1 cm = 10 mm" },
+                        { name: "Time", formula: "1 hour = 60 minutes<br>1 minute = 60 seconds" }
+                    ]
+                }
+            }
+        }
+    };
+
+    const studyTipsNotifications = [ "Tip: Make short notes while reading a chapter. It helps in quick revision!", "Reminder: Finish your homework before playing. You'll enjoy more freely!", "Tip: Ask your teacher if you have any doubts. There's no such thing as a silly question." ];
+    const mathEquationGameQuestions = [ { type: "solve_x", q: "2y + 5 = 15", a: 5, hint: "Subtract 5 from both sides first." }, { type: "true_false", q: "The perimeter of a square with side 4cm is 16cm.", a: true, hint:"Perimeter = 4 x side."}];
+    const scienceTermScrambleWords = [ { term: "STOMATA", hint: "Tiny pores on leaves for gas exchange.", subject: "Biology" }, {term: "CONDUCTION", hint: "Heat transfer in solids.", subject:"Physics"}, {term: "NEUTRAL", hint: "Neither acidic nor basic.", subject: "Chemistry"} ];
+    const sstFactRecallQuestions = [ { q: "Who built the Taj Mahal?", o: ["Akbar", "Jahangir", "Shah Jahan"], c: 2, s: "History" }, { q:"Which is the 'Blue Planet'?", o:["Mars", "Earth", "Neptune"], c:1, s:"Geography"}, { q: "The Upper House of the Indian Parliament is called:", o: ["Lok Sabha", "Vidhan Sabha", "Rajya Sabha"], c: 2, s: "Civics" }];
+
+
+    // --- PREMIUM FEATURE MANAGEMENT ---
+    function isPremiumUser() {
+        return localStorage.getItem(PROFILE_KEYS.IS_PREMIUM) === 'true';
+    }
+
+    // ** NEW: Verifies token from input field **
+    function verifyEnteredToken() {
+        const tokenInput = document.getElementById('token-input');
+        const enteredToken = tokenInput.value.trim().toUpperCase();
+        const feedbackEl = document.getElementById('token-feedback-message');
+
+        if (VALID_PREMIUM_TOKENS.includes(enteredToken)) {
+            feedbackEl.style.color = 'var(--correct-green)';
+            feedbackEl.innerHTML = '✅ Token valid! Premium unlocked!';
+            localStorage.setItem(PROFILE_KEYS.PREMIUM_TOKEN, enteredToken);
+            unlockPremiumFeatures();
+            
+            setTimeout(() => {
+                navigateToScreen('main-premium-screen', null);
+            }, 1500);
+        } else {
+            feedbackEl.style.color = 'var(--incorrect-red)';
+            feedbackEl.innerHTML = '❌ Invalid token. Premium locked.';
+            lockPremiumFeatures(); // Ensure status is locked if they enter a bad token
+            tokenInput.value = ''; // Clear the input
+        }
+    }
+
+    // ** NEW: Verifies token from local storage on startup **
+    function checkStoredToken() {
+        const storedToken = localStorage.getItem(PROFILE_KEYS.PREMIUM_TOKEN);
+        if (storedToken && VALID_PREMIUM_TOKENS.includes(storedToken)) {
+            unlockPremiumFeatures();
+        } else {
+            lockPremiumFeatures();
+        }
+    }
+
+    function unlockPremiumFeatures() {
+      console.log("Unlocking premium features.");
+      setPremiumStatus(true);
+    }
+    
+    function lockPremiumFeatures() {
+      console.log("Locking premium features.");
+      setPremiumStatus(false);
+    }
+    
+    function setPremiumStatus(status) { 
+        const wasPremium = isPremiumUser();
+        localStorage.setItem(PROFILE_KEYS.IS_PREMIUM, status.toString());
+        updateUIForPremiumStatus();
+        
+        // Only show the unlocked screen if their status changed from not-premium to premium.
+        if (status === true && !wasPremium) {
+            navigateToScreen('premium-unlocked-screen', null);
+        }
+    }
+
+    function updateUIForPremiumStatus() {
+        const premium = isPremiumUser();
+        const appContainer = document.getElementById('appContainer');
+        const mainAppTitle = document.getElementById('mainAppTitle');
+        const studentName = localStorage.getItem(PROFILE_KEYS.NAME) || "User";
+        const profileScreen = document.getElementById('profile-screen');
+
+        appContainer.classList.toggle('premium-active', premium);
+        mainAppTitle.classList.toggle('premium-member-title', premium);
+        if(profileScreen) profileScreen.classList.toggle('premium-profile', premium);
+
+        document.getElementById('profile-premium-status').style.display = premium ? 'inline-block' : 'none';
+        if (premium) {
+             document.getElementById('profile-premium-status').innerText = 'Premium Member 🌟';
+        }
+
+        if (document.getElementById('premium-welcome-message')) {
+            document.getElementById('premium-welcome-message').innerText = `Welcome, ${studentName.split(' ')[0]} 🌟`;
+        }
+        
+        document.getElementById('premium-home-banner').style.display = premium ? 'block' : 'none';
+        
+        const downloadBtn = document.getElementById('downloadNotesPdfBtn');
+        if(downloadBtn) {
+            downloadBtn.style.display = 'inline-block';
+            const lockIcon = downloadBtn.querySelector('.lock-icon');
+            if(lockIcon) lockIcon.style.display = premium ? 'none' : 'inline';
+        }
+
+        const goPremiumButton = document.getElementById('nav-go-premium');
+        if (goPremiumButton) {
+            if (premium) {
+                goPremiumButton.innerHTML = '🌟 Premium Hub';
+                goPremiumButton.classList.add('premium-active-item');
+                goPremiumButton.onclick = () => { navigateToScreen('main-premium-screen', null); toggleMenu(); };
+            } else {
+                goPremiumButton.innerHTML = '🚀 Activate Premium';
+                goPremiumButton.classList.remove('premium-active-item');
+                goPremiumButton.onclick = () => { navigateToScreen('enter-token-screen', null); toggleMenu(); };
+            }
+        }
+
+        updateFeatureElementLock('#nav-notes .lock-icon', premium);
+        updateFeatureElementLock('#notes-science-lock', premium);
+        updateFeatureElementLock('#custom-quiz-btn .lock-icon', premium);
+        updateFeatureElementLock('#flashcard-master-mode-btn .lock-icon', premium);
+        updateFeatureElementLock('#nav-analytics .lock-icon', premium);
+        updateFeatureElementLock('#nav-leaderboard .lock-icon', premium);
+        
+        if (document.getElementById('bottom-nav-flashcards-text')) {
+             document.getElementById('bottom-nav-flashcards-text').innerText = premium ? 'FlashPro' : 'Flashcards';
+        }
+        if (document.getElementById('bottom-nav-quiz-text')) {
+             document.getElementById('bottom-nav-quiz-text').innerText = premium ? "CustomQuiz" : "Quiz";
+        }
+        
+        if(document.getElementById('flashcards-subject-screen').classList.contains('active')){
+            showFlashcardSubjects(); 
+        }
+    }
+    
+    function updateFeatureElementLock(selector, isPremium) {
+        const lockIcon = document.querySelector(selector);
+        if (lockIcon) {
+            lockIcon.style.display = isPremium ? 'none' : 'inline';
+        }
+    }
+
+    function navigateToFeature(screenId, clickedButtonOrNull, forcePremiumView = false) {
+        if (!localStorage.getItem(PROFILE_KEYS.NAME)) {
+            navigateToScreen('login-screen', null);
+            return; 
+        }
+
+        // On-demand check for stored token before accessing a locked feature.
+        checkStoredToken();
+
+        const premiumLockedFeatures = {
+            'notes-subject-screen': true,
+            'notes-science-chapter-screen': true,
+            'notes-science-content-screen': true,
+            'flashcard-master-mode-screen': true,
+            'custom-quiz-generator-screen': true,
+            'performance-analytics-screen': true,
+            'leaderboard-screen': true
+        };
+        
+        if (!isPremiumUser() && premiumLockedFeatures[screenId]) {
+            navigateToScreen('enter-token-screen', null);
+            return;
+        }
+        
+        navigateToScreen(screenId, clickedButtonOrNull);
+
+        const screenActions = {
+            'flashcards-subject-screen': showFlashcardSubjects,
+            'quick-quiz-screen': startQuickQuizIfNeeded,
+            'custom-quiz-generator-screen': populateCustomQuizOptions,
+            'performance-analytics-screen': displayPerformanceAnalytics,
+            'leaderboard-screen': displayLeaderboard,
+            'notes-subject-screen': () => showNotesSubject('science'),
+            'flashcard-master-mode-screen': () => {
+                if (currentFlashcardSubject && currentFlashcardTopic) {
+                    loadFlashcardMasterMode(currentFlashcardSubject, currentFlashcardTopic);
+                } else {
+                    alert("Please select a Subject and Topic from Flashcards first to use FlashPro Master Mode.");
+                    navigateToFeature('flashcards-subject-screen', document.querySelector('.bottom-nav-button[onclick*="flashcards-subject-screen"]'));
+                }
+            }
+        };
+
+        if (screenActions[screenId]) {
+            screenActions[screenId]();
+        }
+    }
+    
+    function startQuickQuizIfNeeded() {
+        const qArea = document.getElementById('quick-quiz-question-area');
+        if (qArea && (qArea.textContent === "Loading..." || qArea.textContent.includes("Final Score") || qArea.textContent.includes("Quiz Complete!"))) {
+            startQuickQuiz();
+        }
+    }
+    
+    // --- FLASHPRO MASTER MODE --- (Unchanged)
+    function loadFlashcardMasterMode(subjectKey, topicKey) {
+        const subjectData = flashcardData[subjectKey];
+        if(!subjectData){ alert("Subject data not found for flashcards"); return;}
+        const topicData = subjectData.topics[topicKey];
+        if (!topicData || !topicData.cards || topicData.cards.length === 0) {
+            alert("No cards available for this topic.");
+            navigateToScreen('flashcards-topic-screen', null);
+            return;
+        }
+        currentMasterFlashcards = topicData.cards.map((card, index) => ({
+            ...card,
+            id: `${subjectKey}-${topicKey}-${index}`
+        }));
+        document.getElementById('masterFlashcardViewerTitle').innerText = topicData.title;
+        setMasterFlashcardFilter('all');
+    }
+    function displayMasterCard() {
+        if(currentMasterFlashcards.length === 0) return;
+        const filteredCards = getFilteredMasterCards();
+        if (filteredCards.length === 0) {
+            const filterType = masterFlashcardFilter === 'all' ? 'all' : 'review pile';
+            document.getElementById('masterFlashcardFront').querySelector('.card-content-area').innerText = `No cards in '${filterType}'.`;
+            document.getElementById('masterFlashcardBack').querySelector('.card-content-area').innerText = 'Change filter or learn some cards!';
+            document.getElementById('masterFlashcardCounter').innerText = `Card 0 of 0`;
+            return;
+        }
+        const card = currentMasterFlashcards[currentMasterFlashcardIndex];
+        const currentCardPos = filteredCards.findIndex(c => c.id === card.id) + 1;
+        document.getElementById('masterFlashcardFront').querySelector('.card-content-area').innerText = card.term;
+        document.getElementById('masterFlashcardBack').innerHTML = `<div class="card-content-area">${card.definition}</div>`;
+        document.getElementById('masterFlashcardCounter').innerText = `Card ${currentCardPos} of ${filteredCards.length}`;
+        document.getElementById('masterFlashcard').classList.remove('flipped');
+    }
+    function flipMasterCard() { document.getElementById('masterFlashcard').classList.toggle('flipped'); }
+    function nextMasterCard() { const filteredCards = getFilteredMasterCards(); if (filteredCards.length === 0) return; const currentIndexInFilter = filteredCards.findIndex(c => c.id === currentMasterFlashcards[currentMasterFlashcardIndex].id); if (currentIndexInFilter < filteredCards.length - 1) { const nextCardId = filteredCards[currentIndexInFilter + 1].id; currentMasterFlashcardIndex = currentMasterFlashcards.findIndex(c => c.id === nextCardId); displayMasterCard(); } else { alert("You've reached the end of this list!"); } }
+    function prevMasterCard() { const filteredCards = getFilteredMasterCards(); if (filteredCards.length === 0) return; const currentIndexInFilter = filteredCards.findIndex(c => c.id === currentMasterFlashcards[currentMasterFlashcardIndex].id); if (currentIndexInFilter > 0) { const prevCardId = filteredCards[currentIndexInFilter - 1].id; currentMasterFlashcardIndex = currentMasterFlashcards.findIndex(c => c.id === prevCardId); displayMasterCard(); } else { alert("This is the first card in this list."); } }
+    function speakMasterCardContent(side) { if(!('speechSynthesis' in window)) { alert("Your browser doesn't support text-to-speech."); return; } const contentEl = side === 'front' ? document.getElementById('masterFlashcardFront') : document.getElementById('masterFlashcardBack'); const text = contentEl.querySelector('.card-content-area').textContent; const utterance = new SpeechSynthesisUtterance(text); speechSynthesis.speak(utterance); }
+    function loadFlashcardProgress() { flashcardProgress = JSON.parse(localStorage.getItem(PROFILE_KEYS.FLASHCARD_PROGRESS)) || {}; }
+    function saveFlashcardProgress() { localStorage.setItem(PROFILE_KEYS.FLASHCARD_PROGRESS, JSON.stringify(flashcardProgress)); }
+    function toggleMasterCardLearnedStatus(markAsLearned) { if(currentMasterFlashcards.length === 0) return; const card = currentMasterFlashcards[currentMasterFlashcardIndex]; const newStatus = markAsLearned ? 'learned' : 'review'; flashcardProgress[card.id] = { status: newStatus }; saveFlashcardProgress(); const btn = markAsLearned ? document.getElementById('markLearnedBtn') : document.getElementById('markReviewBtn'); const originalText = btn.innerHTML; btn.innerHTML = markAsLearned ? "Marked! ✅" : "Saved! 🔄"; setTimeout(() => { btn.innerHTML = originalText; nextMasterCard(); }, 500); }
+    function getFilteredMasterCards() { if (masterFlashcardFilter === 'all') { return currentMasterFlashcards; } else { return currentMasterFlashcards.filter(card => flashcardProgress[card.id]?.status === 'review'); } }
+    function setMasterFlashcardFilter(filterType) { masterFlashcardFilter = filterType; const filteredCards = getFilteredMasterCards(); if (filteredCards.length > 0) { const firstCardId = filteredCards[0].id; currentMasterFlashcardIndex = currentMasterFlashcards.findIndex(c => c.id === firstCardId); } else { currentMasterFlashcardIndex = 0; } document.getElementById('masterModeFilterAll').style.fontWeight = filterType==='all' ? 'bold' : 'normal'; document.getElementById('masterModeFilterReview').style.fontWeight = filterType==='review' ? 'bold' : 'normal'; displayMasterCard(); }
+
+    // --- CUSTOM QUIZ GENERATOR --- (Unchanged)
+    function populateCustomQuizOptions() { const subjectSelect = document.getElementById('customQuizSubject'); if(!subjectSelect) return; subjectSelect.innerHTML = '<option value="">Any Subject</option>'; const subjectsWithMcqs = ['maths', 'science', 'english', 'sst', 'hindi']; subjectsWithMcqs.forEach(subjectKey => { if(allMCQsData[subjectKey]) { const option = document.createElement('option'); option.value = subjectKey; option.textContent = subjectKey.charAt(0).toUpperCase() + subjectKey.slice(1); subjectSelect.appendChild(option); } }); populateCustomQuizChapterOptions(); }
+    function populateCustomQuizChapterOptions() { const subject = document.getElementById('customQuizSubject').value; const chapterSelect = document.getElementById('customQuizChapter'); chapterSelect.innerHTML = '<option value="">Any Chapter</option>'; if (!subject || !allMCQsData[subject]) return; let chapters = {}; if(['english', 'sst', 'hindi'].includes(subject)) { Object.keys(allMCQsData[subject]).forEach(bookKey => { if(allMCQsData[subject][bookKey].chapters){ Object.keys(allMCQsData[subject][bookKey].chapters).forEach(chapKey => chapters[`${bookKey}-${chapKey}`] = allMCQsData[subject][bookKey].chapters[chapKey].title) } }); } else { Object.keys(allMCQsData[subject]).forEach(chapKey => chapters[chapKey] = allMCQsData[subject][chapKey].title); } for (const key in chapters) { const option = document.createElement('option'); option.value = key; option.textContent = chapters[key].substring(0,30); chapterSelect.appendChild(option); } }
+    function generateCustomQuiz() { const subject = document.getElementById('customQuizSubject').value; const chapterKeyRaw = document.getElementById('customQuizChapter').value; const numQuestions = parseInt(document.getElementById('customQuizNumQuestions').value) || 5; let availableMcqs = []; let sourceName = "Custom Quiz"; const addMcqsFromChapter = (chapter) => { if (chapter && chapter.mcqs) availableMcqs.push(...chapter.mcqs.map(mcq => ({...mcq, source: chapter.title}))); }; if(subject) { sourceName = subject.charAt(0).toUpperCase() + subject.slice(1); if (chapterKeyRaw) { let [bookKey, chapKey] = chapterKeyRaw.split('-'); if (chapKey) { addMcqsFromChapter(allMCQsData[subject][bookKey].chapters[chapKey]); } else { addMcqsFromChapter(allMCQsData[subject][bookKey]); } } else { for (const key1 in allMCQsData[subject]) { if (allMCQsData[subject][key1].chapters) { for (const key2 in allMCQsData[subject][key1].chapters) addMcqsFromChapter(allMCQsData[subject][key1].chapters[key2]); } else { addMcqsFromChapter(allMCQsData[subject][key1]); } } } } else { for (const sub in allMCQsData) { for (const key1 in allMCQsData[sub]) { if (allMCQsData[sub][key1].chapters) { for (const key2 in allMCQsData[sub][key1].chapters) addMcqsFromChapter(allMCQsData[sub][key1].chapters[key2]); } else { addMcqsFromChapter(allMCQsData[sub][key1]); } } } } if (availableMcqs.length < numQuestions) { alert(`Not enough questions available (${availableMcqs.length}). Please select fewer questions or a broader topic.`); return; } currentCustomQuiz = availableMcqs.sort(() => 0.5 - Math.random()).slice(0, numQuestions); currentCustomQuizIndex = 0; customQuizCurrentScore = 0; navigateToScreen('custom-quiz-play-screen', null); loadNextCustomQuizPlayQuestion(); }
+    function loadNextCustomQuizPlayQuestion() { const qArea = document.getElementById('custom-quiz-play-question-area'); const optsArea = document.getElementById('custom-quiz-play-options-area'); const feedbackArea = document.getElementById('custom-quiz-play-feedback-area'); const scoreArea = document.getElementById('custom-quiz-play-score-area'); const nextBtn = document.getElementById('custom-quiz-play-next-btn'); feedbackArea.innerHTML = ""; nextBtn.style.display = 'none'; scoreArea.textContent = `Score: ${customQuizCurrentScore} / ${currentCustomQuizIndex}`; if (currentCustomQuizIndex >= currentCustomQuiz.length) { qArea.textContent = `Custom Quiz Complete!`; feedbackArea.innerHTML = `Final Score: ${customQuizCurrentScore} / ${currentCustomQuiz.length}<br><button class='ask-button' onclick="generateCustomQuiz()">Generate New Quiz</button>`; optsArea.innerHTML = ""; updateProfileTotals(customQuizCurrentScore, currentCustomQuiz.length, 'Custom Quiz'); recordQuizAttempt("Custom", "Custom Quiz", customQuizCurrentScore, currentCustomQuiz.length, 'custom'); return; } const qData = currentCustomQuiz[currentCustomQuizIndex]; qArea.innerHTML = `${currentCustomQuizIndex + 1}. ${qData.q}`; optsArea.innerHTML = ""; qData.o.forEach((option, index) => { const btn = document.createElement('button'); btn.className = 'quick-quiz-option-button'; btn.textContent = option; btn.onclick = () => checkCustomQuizPlayAnswer(index, qData.c, qData.o[qData.c], qData.e); optsArea.appendChild(btn); }); currentCustomQuizIndex++; }
+    function checkCustomQuizPlayAnswer(selectedIndex, correctIndex, correctAnswerText, explanation) { const options = document.querySelectorAll('#custom-quiz-play-options-area button'); const feedbackArea = document.getElementById('custom-quiz-play-feedback-area'); document.getElementById('custom-quiz-play-next-btn').style.display = 'block'; options.forEach(btn => btn.disabled = true); if (selectedIndex === correctIndex) { customQuizCurrentScore++; options[selectedIndex].classList.add('correct'); feedbackArea.innerHTML = "Correct! " + (explanation ? `<br><small>${explanation}</small>` : ''); feedbackArea.style.color = 'var(--correct-green)'; } else { options[selectedIndex].classList.add('incorrect'); options[correctIndex].classList.add('correct'); feedbackArea.innerHTML = `Incorrect. Correct: ${correctAnswerText}` + (explanation ? `<br><small>${explanation}</small>` : ''); feedbackArea.style.color = 'var(--incorrect-red)'; } document.getElementById('custom-quiz-play-score-area').textContent = `Score: ${customQuizCurrentScore} / ${currentCustomQuizIndex}`; }
+
+    // --- ANALYTICS & LEADERBOARD --- (Unchanged)
+    function recordQuizAttempt(subject, chapter, score, totalQuestions, type) { try { const history = JSON.parse(localStorage.getItem(PROFILE_KEYS.QUIZ_HISTORY)) || []; history.push({subject, chapter, score, totalQuestions, type, date: new Date().toISOString()}); if(history.length > 100) history.shift(); localStorage.setItem(PROFILE_KEYS.QUIZ_HISTORY, JSON.stringify(history)); } catch (e) { console.error("Error recording quiz:", e); } }
+    function updateProfileTotals(score, totalQuestions, quizTypeString) { let attempted = parseInt(localStorage.getItem(PROFILE_KEYS.ATTEMPTED) || '0'); let correct = parseInt(localStorage.getItem(PROFILE_KEYS.CORRECT) || '0'); localStorage.setItem(PROFILE_KEYS.ATTEMPTED, (attempted + 1).toString()); localStorage.setItem(PROFILE_KEYS.CORRECT, (correct + score).toString()); localStorage.setItem(PROFILE_KEYS.LAST_SCORE, score.toString()); localStorage.setItem(PROFILE_KEYS.LAST_TOTAL, totalQuestions.toString()); localStorage.setItem(PROFILE_KEYS.LAST_DATE, new Date().toLocaleDateString()); populateProfileData(); }
+    function displayPerformanceAnalytics() { const history = JSON.parse(localStorage.getItem(PROFILE_KEYS.QUIZ_HISTORY)) || []; const list = document.getElementById('analytics-summary-list'); const overallScoreEl = document.getElementById('overallAverageScore'); list.innerHTML = ''; if(history.length === 0){ list.innerHTML = '<li>No quiz data yet. Play some quizzes!</li>'; overallScoreEl.textContent = "N/A"; return; } const bySubject = {}; history.forEach(item => { if(item.subject === 'Custom') return; if (!bySubject[item.subject]) bySubject[item.subject] = { s: 0, t: 0 }; bySubject[item.subject].s += item.score; bySubject[item.subject].t += item.totalQuestions; }); let totalScore = 0; let totalQs = 0; Object.keys(bySubject).forEach(subject => { const {s, t} = bySubject[subject]; totalScore+=s; totalQs+=t; const avg = t > 0 ? (s/t*100).toFixed(1) : 0; const li = document.createElement('li'); li.innerHTML = `<strong>${subject}:</strong> ${s} / ${t} correct (${avg}%)`; list.appendChild(li); }); overallScoreEl.textContent = totalQs > 0 ? `${(totalScore / totalQs * 100).toFixed(1)}%` : 'N/A'; }
+    function displayLeaderboard() { const name = localStorage.getItem(PROFILE_KEYS.NAME) || "You"; const score = parseInt(localStorage.getItem(PROFILE_KEYS.CORRECT) || '0'); const list = document.getElementById('leaderboard-list'); list.innerHTML = ''; const dummyData = [ {name, score}, {name: "Priya", score: score+21}, {name: "Rohan", score: Math.max(0, score-5)}, {name:"Aisha", score: score+8}, {name:"Vikram", score: Math.max(0, score-15)}, {name:"Sneha", score: score+35}, {name:"Karan", score: Math.max(0, score-1)} ].sort((a,b)=> b.score - a.score); dummyData.forEach((item, index) => { const li = document.createElement('li'); li.innerHTML = `<span class="leaderboard-rank">#${index+1}</span><span class="leaderboard-name">${item.name}</span><span class="leaderboard-score">${item.score}pts</span>`; if(item.name === name) {li.style.backgroundColor = 'var(--premium-plan-selected-bg)'; li.style.fontWeight='bold';} list.appendChild(li); }); }
+
+    // --- GENERAL APP & CORE FUNCTIONS ---
+    function initializeApp() { 
+        const studentName = localStorage.getItem(PROFILE_KEYS.NAME);
+        const mainTitleEl = document.getElementById('mainAppTitle');
+
+        if (studentName) {
+            mainTitleEl.innerText = `${studentName.split(' ')[0]}'s Lernovix`;
+            checkStoredToken(); // Verify token on every app start
+            
+            // Navigate based on verified premium status
+            if (isPremiumUser()) {
+                navigateToScreen('main-premium-screen');
+            } else {
+                navigateToScreen('home-screen');
+            }
+        } else {
+            mainTitleEl.innerText = 'Lernovix';
+            navigateToScreen('login-screen');
+            lockPremiumFeatures(); // Ensure features are locked for non-logged-in users
+        }
+        loadFlashcardProgress();
+    }
+
+    async function handleLogin() { 
+        const nameInput = document.getElementById('studentNameInput');
+        const studentName = nameInput.value.trim();
+        if (studentName === "") { alert("Name is required to continue."); return; }
+
+        const email = prompt("To track your progress, please enter your email address:", localStorage.getItem(PROFILE_KEYS.EMAIL) || "");
+        if (!email || !/^\S+@\S+\.\S+$/.test(email)) { alert("Please enter a valid email address."); return; }
+        
+        // Store user details
+        localStorage.setItem(PROFILE_KEYS.NAME, studentName);
+        localStorage.setItem(PROFILE_KEYS.EMAIL, email.trim().toLowerCase());
+
+        // Initialize other keys if they don't exist
+        if(localStorage.getItem(PROFILE_KEYS.ATTEMPTED) === null) localStorage.setItem(PROFILE_KEYS.ATTEMPTED, '0');
+        if(localStorage.getItem(PROFILE_KEYS.CORRECT) === null) localStorage.setItem(PROFILE_KEYS.CORRECT, '0');
+
+        document.getElementById('mainAppTitle').innerText = `${studentName.split(' ')[0]}'s Lernovix`;
+        nameInput.value = '';
+
+        checkStoredToken(); // Check if a token already exists for this user
+        
+        // Navigate based on updated premium status
+        if (isPremiumUser()) {
+             navigateToScreen('main-premium-screen', null);
+        } else {
+             navigateToScreen('home-screen', null);
+        }
+        updateUIForPremiumStatus();
+    }
+
+    function populateProfileData() { 
+        document.getElementById('profileName').textContent = localStorage.getItem(PROFILE_KEYS.NAME) || 'N/A';
+        document.getElementById('profileEmail').textContent = localStorage.getItem(PROFILE_KEYS.EMAIL) || 'N/A';
+        const token = localStorage.getItem(PROFILE_KEYS.PREMIUM_TOKEN);
+        document.getElementById('profileTokenDisplay').textContent = token ? `****${token.slice(-4)}` : "Not Set";
+        document.getElementById('profileTotalQuizzes').textContent = localStorage.getItem(PROFILE_KEYS.ATTEMPTED) || '0';
+        document.getElementById('profileTotalCorrect').textContent = localStorage.getItem(PROFILE_KEYS.CORRECT) || '0';
+        document.getElementById('profileLastQuizScore').textContent = localStorage.getItem(PROFILE_KEYS.LAST_SCORE) || '0';
+        const lastTotal = localStorage.getItem(PROFILE_KEYS.LAST_TOTAL);
+        document.getElementById('profileLastQuizTotalQuestions').textContent = (lastTotal && lastTotal !== 'N/A') ? lastTotal : quickQuizQuestions.length.toString();
+        document.getElementById('profileLastQuizDate').textContent = localStorage.getItem(PROFILE_KEYS.LAST_DATE) || 'N/A';
+        updateUIForPremiumStatus();
+    }
+
+    function goBackToHomeFromSubscreen() {  
+         if (isPremiumUser()) {
+             navigateToScreen('main-premium-screen');
+         } else {
+             navigateToScreen('home-screen');
+         }
+    }
+    
+    function toggleMenu() { document.getElementById('featureMenu').style.display = document.getElementById('featureMenu').style.display === 'flex' ? 'none' : 'flex'; }
+
+    function showScreen(id) { 
+        if (document.getElementById('featureMenu').style.display === 'flex') {
+            toggleMenu();
+        }
+        
+        const mainTitleEl = document.getElementById('mainAppTitle');
+        const studentName = localStorage.getItem(PROFILE_KEYS.NAME);
+        
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        const targetScreen = document.getElementById(id);
+        
+        if (targetScreen) {
+            targetScreen.classList.add('active');
+            targetScreen.scrollTop = 0;
+            if (id === 'profile-screen') populateProfileData();
+            if (id === 'enter-token-screen') { // Clear feedback on showing screen
+              const feedbackEl = document.getElementById('token-feedback-message');
+              if(feedbackEl) feedbackEl.innerHTML = '';
+            }
+        } else {
+            console.error("Screen not found: " + id);
+            navigateToScreen(studentName ? 'home-screen' : 'login-screen');
+        }
+        updateBottomNavActiveState(id);
+        updateUIForPremiumStatus();
+    }
+
+    function updateBottomNavActiveState(currentScreenId) { 
+        document.querySelectorAll('.bottom-nav-button').forEach(btn => btn.classList.remove('active'));
+        
+        const screenToNavMatcher = { 'home-screen': 'home-screen', 'main-premium-screen': 'home-screen', 'formulas-subject-screen': 'formulas-subject-screen', 'formulas-topic-screen': 'formulas-subject-screen', 'formulas-content-screen': 'formulas-subject-screen', 'flashcards-subject-screen': 'flashcards-subject-screen', 'flashcards-topic-screen': 'flashcards-subject-screen', 'flashcard-viewer-screen': 'flashcards-subject-screen', 'flashcard-master-mode-screen': 'flashcards-subject-screen', 'quick-quiz-screen': 'quick-quiz-screen', 'custom-quiz-generator-screen': 'quick-quiz-screen', 'custom-quiz-play-screen': 'quick-quiz-screen' };
+        let activeNavKey = screenToNavMatcher[currentScreenId];
+        
+        if (activeNavKey) {
+            const navBtn = Array.from(document.querySelectorAll('.bottom-nav-button')).find(btn => btn.getAttribute('onclick')?.includes(`'${activeNavKey}'`));
+            if (navBtn) navBtn.classList.add('active');
+        }
+    }
+    
+    // UPDATED: Central navigation function to stop AI voice
+    function navigateToScreen(screenId, clickedButton) {
+        // AI VOICE FIX: Stop any ongoing speech synthesis when navigating away.
+        if ('speechSynthesis' in window && isAiSpeaking) {
+            speechSynthesis.cancel();
+            isAiSpeaking = false;
+        }
+
+        if (!localStorage.getItem(PROFILE_KEYS.NAME) && screenId !== 'login-screen') { 
+            showScreen('login-screen');
+            return; 
+        }
+        showScreen(screenId);
+    }
+    
+    // --- Other Core and UI Functions ---
+    function renderChapterButtons(container, subject, bookKey, chapterList, loadFunction) { container.innerHTML=''; Object.keys(chapterList).forEach(key=>{const chapter=chapterList[key];const button=document.createElement('button');button.className='chapter-button';button.innerText=chapter.title;button.onclick=()=>loadFunction(subject, bookKey || key, bookKey ? key : null);container.appendChild(button);}); }
+    function showMCQContent(subject) { const chapterScreenId=`mcq-${subject}-chapter-screen`;const bookScreenId=`mcq-${subject}-book-screen`;if(['english','sst','hindi'].includes(subject)){navigateToScreen(bookScreenId,null);return;} const chapterContainer=document.getElementById(`${subject}-chapter-buttons-mcq`); if(!chapterContainer)return; renderChapterButtons(chapterContainer, subject, null, allMCQsData[subject], loadChapterMCQs); navigateToScreen(chapterScreenId,null); }
+    function showEnglishBookChapters(bookKey){ currentSelectedEnglishBook=bookKey;const chapterContainer=document.getElementById('english-chapter-list-container');document.getElementById('english-selected-book-title').innerText=allMCQsData.english[bookKey].title;renderChapterButtons(chapterContainer,'english',bookKey,allMCQsData.english[bookKey].chapters,loadChapterMCQs);navigateToScreen('mcq-english-chapter-screen',null); }
+    function showSSTBookChapters(bookKey){ currentSelectedSSTBook=bookKey;const chapterContainer=document.getElementById('sst-chapter-list-container');document.getElementById('sst-selected-book-title').innerText=allMCQsData.sst[bookKey].title;renderChapterButtons(chapterContainer,'sst',bookKey,allMCQsData.sst[bookKey].chapters,loadChapterMCQs);navigateToScreen('mcq-sst-chapter-screen',null); }
+    function showHindiBookChapters(bookKey){ currentSelectedHindiBook=bookKey;const chapterContainer=document.getElementById('hindi-chapter-list-container');document.getElementById('hindi-selected-book-title').innerText=allMCQsData.hindi[bookKey].title;renderChapterButtons(chapterContainer,'hindi',bookKey,allMCQsData.hindi[bookKey].chapters,loadChapterMCQs);navigateToScreen('mcq-hindi-chapter-screen',null); }
+    function loadChapterMCQs(subject, key1, key2) { const contentScreenId = `mcq-${subject}-content-screen`; const containerId = `${subject}-mcq-container-id`; const titleId = `${subject}-mcq-chapter-title`; let chapterData; let backButton=document.querySelector(`#${contentScreenId} .back-button`); if(key2){chapterData=allMCQsData[subject][key1].chapters[key2]; if(subject==='english'){backButton.onclick=()=>showEnglishBookChapters(key1);}else if(subject==='sst'){backButton.onclick=()=>showSSTBookChapters(key1);}else if(subject==='hindi'){backButton.onclick=()=>showHindiBookChapters(key1);}}else{chapterData=allMCQsData[subject][key1];backButton.onclick=()=>navigateToScreen(`mcq-${subject}-chapter-screen`);} document.getElementById(titleId).innerText=chapterData.title; const mcqContainer = document.getElementById(containerId); mcqContainer.innerHTML=''; chapterData.mcqs.forEach(mcq=>{const itemDiv=document.createElement('div');itemDiv.className='mcq-item';const question=document.createElement('div');question.className='mcq-question';question.innerText=mcq.q;const optionsUl=document.createElement('ul');optionsUl.className='mcq-options-list';mcq.o.forEach((option, index) => {const li=document.createElement('li');li.innerText=option;li.onclick=()=>revealAnswer(itemDiv,index,mcq.c,mcq.e,optionsUl);optionsUl.appendChild(li);});itemDiv.appendChild(question);itemDiv.appendChild(optionsUl);mcqContainer.appendChild(itemDiv);}); navigateToScreen(contentScreenId, null); }
+    function revealAnswer(mcqItemDiv, selectedOptionIndex, correctOptionIndex, explanation, optionsUl){ optionsUl.querySelectorAll('li').forEach((li,index)=>{li.classList.add('disabled'); li.onclick = null; if(index === selectedOptionIndex) { li.classList.add('selected', selectedOptionIndex === correctOptionIndex ? 'correct' : 'incorrect'); }}); if(selectedOptionIndex !== correctOptionIndex) { optionsUl.children[correctOptionIndex].classList.add('correct'); } if(explanation) { const explDiv = document.createElement('div'); explDiv.className='mcq-explanation'; explDiv.innerHTML = `<strong>Explanation:</strong> ${explanation}`; mcqItemDiv.appendChild(explDiv); } }
+    function showNotesSubject(subject) { navigateToFeature(`notes-${subject}-chapter-screen`); if(subject==='science'){const container = document.getElementById('notes-science-chapter-list-container'); if(!container) return; container.innerHTML = ''; Object.keys(scienceNotesData).forEach(chapterKey => { const chapter=scienceNotesData[chapterKey]; const btn = document.createElement('button'); btn.className = 'notes-chapter-button'; btn.textContent = chapter.title; btn.onclick = ()=>loadScienceNotes(chapterKey); container.appendChild(btn); }); }}
+    function loadScienceNotes(chapterKey) { currentSelectedScienceNotesChapter=chapterKey; const chapter=scienceNotesData[chapterKey];document.getElementById('science-notes-chapter-title').innerText=chapter.title; document.getElementById('science-notes-content-area').innerHTML=chapter.content; navigateToScreen('notes-science-content-screen');}
+    function downloadNotesAsPdf() {  if (!isPremiumUser()) { showPremiumUpsellScreen(); return; } alert('PDF Download functionality is a premium feature, coming soon!'); }
+
+    // UPDATED: askGemini with voice fixes
+    async function askGemini() {
+        // AI VOICE FIX 1: Cancel any previous speech before starting a new one.
+        speechSynthesis.cancel();
+        isAiSpeaking = false;
+
+        const questionInput = document.getElementById('userQuestion');
+        const presentationContainer = document.getElementById('ai-presentation-container');
+        const userQuestionText = questionInput.value.trim();
+        if (!userQuestionText) {
+            presentationContainer.innerHTML = "<p>Please type a question for the AI Tutor.</p>";
+            return;
+        }
+        let aiModelPromptPrefix = "You are a helpful AI Tutor. Explain this concept for a Class 7 CBSE student in simple, clear terms. Use analogies. Format the response in 2 to 4 distinct paragraphs. Question: ";
+        let thinkingMessage = "AI Tutor is thinking...";
+        if (isPremiumUser()) {
+            aiModelPromptPrefix = "You are TutorBot Pro (Bhola GPT), an expert AI Tutor for Class 7 CBSE students. Provide a detailed, engaging, and very easy-to-understand explanation. Use real-world examples. Format the entire response into 2-4 distinct paragraphs for a video-like presentation. Question: ";
+            thinkingMessage = "TutorBot Pro is creating your video explanation...";
+        }
+        presentationContainer.innerHTML = `<p>${thinkingMessage}</p>`;
+        if (!GEMINI_API_KEY || GEMINI_API_KEY === "YOUR_GEMINI_API_KEY") {
+            presentationContainer.innerHTML = "<p>AI Tutor is currently unavailable (API key not configured by admin).</p>";
+            return;
+        }
+        try {
+            const apiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_API_KEY}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ contents: [{ parts: [{ text: aiModelPromptPrefix + userQuestionText }] }] })
+            });
+            if (!apiResponse.ok) throw new Error(`API error! status: ${apiResponse.status}`);
+            const data = await apiResponse.json();
+            if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
+                startVideoExplanation(data.candidates[0].content.parts[0].text);
+            } else if (data.candidates && data.candidates[0]?.finishReason) {
+                presentationContainer.innerHTML = `<p>AI response was blocked (Reason: ${data.candidates[0].finishReason}). Please rephrase your question.</p>`;
+            } else {
+                throw new Error("Unexpected AI response format.");
+            }
+        } catch (error) {
+            console.error('Error calling Gemini API:', error);
+            presentationContainer.innerHTML = "<p>An error occurred connecting to the AI Tutor. Please try again.</p>";
+        }
+    }
+
+    function startVideoExplanation(fullText) { fullAiResponseForReplay=fullText; const paragraphs=fullText.split(/\n\n+/).filter(p=>p.trim().length>0); aiSlides=[];let currentSlide="";paragraphs.forEach(p=>{if(currentSlide.length<200&&aiSlides.length<3){currentSlide+=(currentSlide?"\n\n":"")+p;}else{aiSlides.push(currentSlide.trim());currentSlide=p;}});if(currentSlide)aiSlides.push(currentSlide.trim());if(aiSlides.length===0)aiSlides.push(fullText);currentAiSlideIndex=0;showNextAiSlide();}
+    function showNextAiSlide() {const container=document.getElementById('ai-presentation-container');container.innerHTML='';if(currentAiSlideIndex>=aiSlides.length){displayAiExplanationEndState();return;}const slideText=aiSlides[currentAiSlideIndex];const el=document.createElement('div');el.className='ai-slide';el.innerHTML=slideText.replace(/\n/g,"<br>");container.appendChild(el);speakAndProceed(slideText);currentAiSlideIndex++;}
+    function speakAndProceed(textToSpeak){if(!('speechSynthesis'in window)){setTimeout(showNextAiSlide,textToSpeak.length*50+2000);return;}const cleanText=textToSpeak.replace(/<br>/g,' ').replace(/<[^>]+>/g,'').replace(/[\*#_`]/g,'');const utterance=new SpeechSynthesisUtterance(cleanText);isAiSpeaking=true;utterance.onend=()=>{isAiSpeaking=false;setTimeout(showNextAiSlide,1200);};utterance.onerror=(e)=>{console.error('SpeechSynthesis.onerror',e);isAiSpeaking=false;setTimeout(showNextAiSlide,textToSpeak.length*50+2000);};speechSynthesis.speak(utterance);}
+    function displayAiExplanationEndState(){const c=document.getElementById('ai-presentation-container');c.innerHTML=`<p>Explanation complete! ✨</p><button class="action-button orange" style="width:auto" onclick="speechSynthesis.cancel();isAiSpeaking=false;startVideoExplanation(fullAiResponseForReplay);">🔄 Replay Explanation</button>`;}
+    const calcDisplayEl = document.getElementById('calc-display'); let calcDisplayString='0';let isResultDisplayed=false;let errorState=false;function updateCalcDisplay(){if(calcDisplayEl)calcDisplayEl.innerText=calcDisplayString;}function appendNumber(n){if(errorState)calcClear();if(calcDisplayString.length>=20&&!isResultDisplayed)return;if(calcDisplayString==='0'||isResultDisplayed){calcDisplayString=n;isResultDisplayed=false;}else{calcDisplayString+=n;}updateCalcDisplay();}function appendOperator(op){if(errorState)calcClear();if(isResultDisplayed)isResultDisplayed=false;const lastChar=calcDisplayString.slice(-1);const ops=['+','-','×','÷'];if(calcDisplayString==='0'&&op!=='-'){if(op==='×'||op==='÷'||op==='+'||op==='.')return;}if(ops.includes(lastChar)){if(!((lastChar==='×'||lastChar==='÷')&&op==='-'))calcDisplayString=calcDisplayString.slice(0,-1)+op;else calcDisplayString+=op;}else if(calcDisplayString.slice(-2)==='--'&&op==='-')return;else calcDisplayString+=op;updateCalcDisplay();}function appendDecimal(){if(errorState)calcClear();if(isResultDisplayed){calcDisplayString='0.';isResultDisplayed=false;}else{const parts=calcDisplayString.replace(/[+\-×÷()]/g,' ').split(' ');const currNumSeg=parts[parts.length-1];if(!currNumSeg.includes('.'))calcDisplayString+='.';}updateCalcDisplay();}function appendParenthesis(p){if(errorState)calcClear();if(calcDisplayString==='0'&&p==='('){calcDisplayString='(';isResultDisplayed=false;}else if(isResultDisplayed&&p==='('){calcDisplayString='(';isResultDisplayed=false;}else if(isResultDisplayed&&/[0-9.)]$/.test(calcDisplayString)&&p==='('){calcDisplayString+='×(';isResultDisplayed=false;}else{calcDisplayString+=p;isResultDisplayed=false;}updateCalcDisplay();}function calcClear(){calcDisplayString='0';isResultDisplayed=false;errorState=false;updateCalcDisplay();}function calcBackspace(){if(errorState)calcClear();if(isResultDisplayed)calcClear();calcDisplayString=calcDisplayString.slice(0,-1);if(calcDisplayString==='')calcDisplayString='0';updateCalcDisplay();}
+    function calculateResult(){if(errorState)return;if(calcDisplayString==='0'||calcDisplayString===''||isResultDisplayed)return;let expr=calcDisplayString.replace(/×/g,'*').replace(/÷/g,'/');if((expr.match(/\(/g)||[]).length!==(expr.match(/\)/g)||[]).length){calcDisplayString="Error: Brackets";errorState=true;isResultDisplayed=true;updateCalcDisplay();return;}if(/[+\-*/]$/.test(expr))expr=expr.slice(0,-1);try{const result=eval(expr.replace(/[^-()\d/*+.]/g,''));if(result===Infinity||result===-Infinity||isNaN(result)){calcDisplayString="Error";errorState=true;}else{calcDisplayString=result.toString().slice(0,15);}}catch(e){calcDisplayString="Error";errorState=true;}isResultDisplayed=true;updateCalcDisplay();}function calcSqrt(){if(errorState)return;try{let val=eval(calcDisplayString.replace(/×/g,'*').replace(/÷/g,'/'));if(val<0){calcDisplayString="Error";errorState=true;}else{calcDisplayString=Math.sqrt(val).toString().slice(0,15);}}catch(e){calcDisplayString="Error";errorState=true;}isResultDisplayed=true;updateCalcDisplay();}function calculatePercentage(){if(errorState)return;try{let val=eval(calcDisplayString.replace(/×/g,'*').replace(/÷/g,'/'));calcDisplayString=(val/100).toString().slice(0,15);}catch(e){calcDisplayString="Error";errorState=true;}isResultDisplayed=true;updateCalcDisplay();}
+    
+    // NEW: submitFeedback function using mailto link
+    function submitFeedback() {
+        const nameInput = document.getElementById('feedbackName');
+        const feedbackInput = document.getElementById('feedbackMessage');
+        const respEl = document.getElementById('feedback-response-message');
+
+        const name = nameInput.value.trim();
+        const feedback = feedbackInput.value.trim();
+
+        if (!name || !feedback) {
+            respEl.textContent = "Please fill in both your name and feedback message.";
+            respEl.style.color = "var(--incorrect-red)";
+            return;
+        }
+
+        const subject = "App Feedback";
+        const body = `Hi,\n\nMy name: ${name}\nFeedback:\n${feedback}`;
+        const mailtoLink = `mailto:kumarsinghr27314@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+        window.open(mailtoLink, '_blank');
+
+        respEl.textContent = "Your mail client should now be open. Thank you!";
+        respEl.style.color = "var(--correct-green)";
+    }
+    
+    // NEW: submitTokenRequest function using mailto link
+    function submitTokenRequest() {
+        const nameInput = document.getElementById('tokenRequestName');
+        const emailInput = document.getElementById('tokenRequestEmail');
+        
+        const name = nameInput.value.trim();
+        const email = emailInput.value.trim();
+
+        if (!name || !email) {
+            alert('Please fill in both your name and email.');
+            return;
+        }
+
+        if (!/^\S+@\S+\.\S+$/.test(email)) {
+            alert('Please enter a valid email address.');
+            return;
+        }
+
+        const subject = "Token Request";
+        const fixedMessage = "Hi, I want to request a premium token.";
+        const body = `Hi,\n\nMy name: ${name}\nMy email: ${email}\n\n${fixedMessage}`;
+        const mailtoLink = `mailto:kumarsinghr27314@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+        window.open(mailtoLink, '_blank');
+        
+        alert("Your email app will now open to send the request.");
+    }
+
+
+    function showFormulaSubjects(){const c=document.getElementById('formula-subject-list-container');c.innerHTML='';let hs=false;for(const sk in formulaData){const s=formulaData[sk];if(s.topics&&Object.keys(s.topics).length>0){const b=document.createElement('button');b.className='subject-button';b.innerText=s.title;b.onclick=()=>{currentFormulaSubject=sk;showFormulaTopics(sk);};c.appendChild(b);hs=true;}}if(!hs)c.innerHTML="<p>Formulas are being updated.</p>";}
+    function showFormulaTopics(subjectKey){currentFormulaSubject=subjectKey;const s=formulaData[subjectKey],tE=document.getElementById('formula-topic-title'),c=document.getElementById('formula-topic-list-container');if(!s||!s.topics){tE.innerText="Error";c.innerHTML="<p>Topics unavailable.</p>";}else{tE.innerText=`${s.title} - Topics`;c.innerHTML='';let ht=false;for(const tk in s.topics){const t=s.topics[tk];if(t.formulas&&t.formulas.length>0){const btn=document.createElement('button');btn.className='chapter-button';btn.innerText=t.title;btn.onclick=()=>loadFormulas(subjectKey,tk);c.appendChild(btn);ht=true;}}if(!ht)c.innerHTML=`<p>No formula topics for ${s.title}.</p>`;}document.getElementById('formula-topic-back-button').onclick=()=>navigateToScreen('formulas-subject-screen');navigateToScreen('formulas-topic-screen');}
+    function loadFormulas(sk,tk){const t=formulaData[sk]?.topics?.[tk];const tE=document.getElementById('formulas-content-title'),dA=document.getElementById('formulas-display-area');if(!t||!t.formulas){tE.innerText="Error";dA.innerHTML="<p>Formulas unavailable.</p>";}else{tE.innerText=t.title;dA.innerHTML='';if(t.formulas.length>0){const ul=document.createElement('ul');t.formulas.forEach(i=>{const li=document.createElement('li');li.innerHTML=`<strong>${i.name||''}:</strong> ${i.formula?.replace(/\n/g,'<br>')||''}`;ul.appendChild(li);});dA.appendChild(ul);}else dA.innerHTML='<p>No formulas for this topic.</p>';}document.getElementById('formulas-content-back-button').onclick=()=>showFormulaTopics(sk);navigateToScreen('formulas-content-screen');}
+    function displayRandomFact(){const el=document.getElementById('fact-display-area');if(!el||!randomFactsArray.length)return;let idx;do{idx=Math.floor(Math.random()*randomFactsArray.length);}while(idx===lastRandomFactIndex&&randomFactsArray.length>1);lastRandomFactIndex=idx;el.innerHTML=randomFactsArray[idx];} 
+    function displayDailyThought(){const d=document.getElementById('thought-display-area'),t=document.getElementById('thought-update-time');if(!d||!thoughtsArray.length)return;const lTD=JSON.parse(localStorage.getItem('hT_v2')||'{}'),n=new Date,cHK=`${n.getFullYear()}-${n.getMonth()}-${n.getDate()}-${n.getHours()}`;if(lTD.hourKey===cHK&&thoughtsArray[lTD.index]){d.innerHTML=thoughtsArray[lTD.index];}else{let newIdx;do{newIdx=Math.floor(Math.random()*thoughtsArray.length);}while(newIdx===lTD.index&&thoughtsArray.length>1);d.innerHTML=thoughtsArray[newIdx];localStorage.setItem('hT_v2',JSON.stringify({index:newIdx,hourKey:cHK}));}if(t)t.innerText="(Thought changes hourly)";}
+    function startNotificationCycling(){const bar=document.getElementById('notificationBar');if(sessionStorage.getItem('notifDismissed')==='true'){bar.classList.add('hidden');return;}bar.classList.remove('hidden');showNextNotification();if(notificationIntervalId)clearInterval(notificationIntervalId);notificationIntervalId=setInterval(showNextNotification,10000);}
+    function showNextNotification(){const el=document.getElementById('notificationTextContent');if(el&&studyTipsNotifications.length){el.innerHTML=studyTipsNotifications[currentNotificationIndex];currentNotificationIndex=(currentNotificationIndex+1)%studyTipsNotifications.length;}}
+    function dismissNotification(){document.getElementById('notificationBar').classList.add('hidden');if(notificationIntervalId)clearInterval(notificationIntervalId);sessionStorage.setItem('notifDismissed','true');}
+    function shuffleQuizQuestions(){quickQuizQuestionPool=[...quickQuizQuestions].sort(()=>Math.random()-0.5);}
+    function startQuickQuiz(){quickQuizScore=0;shuffleQuizQuestions();document.getElementById('quick-quiz-score-area').textContent=`Score: ${quickQuizScore}`;document.getElementById('quick-quiz-feedback-area').textContent="";document.getElementById('quick-quiz-next-btn').style.display='none';loadNextQuickQuizQuestion();}
+    function loadNextQuickQuizQuestion(){const qA=document.getElementById('quick-quiz-question-area'),oA=document.getElementById('quick-quiz-options-area'),fA=document.getElementById('quick-quiz-feedback-area'),nB=document.getElementById('quick-quiz-next-btn');if(!qA||!oA||!fA||!nB)return;fA.textContent="";nB.style.display='none';if(!quickQuizQuestionPool.length){qA.textContent="Quick Quiz Complete!";oA.innerHTML="";fA.textContent=`Final Score: ${quickQuizScore} out of ${quickQuizQuestions.length}`;updateProfileTotals(quickQuizScore,quickQuizQuestions.length,'Quick Quiz');recordQuizAttempt("General","Quick Quiz",quickQuizScore,quickQuizQuestions.length,'quick');oA.innerHTML=`<button class='quick-quiz-next-button' style='display:inline-block' onclick='startQuickQuiz()'>Play Again</button>`;return;}currentQuickQuizQuestionObj=quickQuizQuestionPool.shift();qA.innerHTML=currentQuickQuizQuestionObj.question;oA.innerHTML="";currentQuickQuizQuestionObj.options.forEach((opt,i)=>{const btn=document.createElement('button');btn.className='quick-quiz-option-button';btn.innerHTML=opt;btn.onclick=()=>checkQuickQuizAnswer(i);oA.appendChild(btn);});}
+    function checkQuickQuizAnswer(selIdx){const fA=document.getElementById('quick-quiz-feedback-area'),btns=document.querySelectorAll('#quick-quiz-options-area button'),sA=document.getElementById('quick-quiz-score-area'),nB=document.getElementById('quick-quiz-next-btn');btns.forEach(b=>b.classList.add('disabled'));const expl=currentQuickQuizQuestionObj.explanation?`<br><small><i>Explanation: ${currentQuickQuizQuestionObj.explanation}</i></small>`:"";if(selIdx===currentQuickQuizQuestionObj.correctOptionIndex){fA.innerHTML="Correct! 🎉"+expl;fA.style.color="var(--correct-green)";quickQuizScore++;btns[selIdx]?.classList.add('correct');}else{fA.innerHTML=`Incorrect. Correct: ${currentQuickQuizQuestionObj.options[currentQuickQuizQuestionObj.correctOptionIndex]}`+expl;fA.style.color="var(--incorrect-red)";btns[selIdx]?.classList.add('incorrect');btns[currentQuickQuizQuestionObj.correctOptionIndex]?.classList.add('correct');}sA.textContent=`Score: ${quickQuizScore}`;nB.style.display='inline-block';}
+    function showFlashcardSubjects(){const c=document.getElementById('flashcard-subject-list-container');c.innerHTML='';let hs=false;for(const sk in flashcardData){const s=flashcardData[sk];if(s.topics&&Object.keys(s.topics).length){hs=true;const btn=document.createElement('button');btn.className='subject-button';btn.innerHTML=`${s.title} ${isPremiumUser()?"(FlashPro Ready)":""}`;btn.onclick=()=>{currentFlashcardSubject=sk;showFlashcardTopics(sk);};c.appendChild(btn);}}if(!hs)c.innerHTML="<p>Flashcards are being prepared.</p>";}
+    function showFlashcardTopics(sk){currentFlashcardSubject=sk;const s=flashcardData[sk],tE=document.getElementById('flashcard-topic-title'),c=document.getElementById('flashcard-topic-list-container');if(!s||!s.topics){tE.innerText="Error";c.innerHTML="<p>Topics unavailable.</p>";}else{tE.innerText=`${s.title} - Topics`;c.innerHTML='';let ht=false;for(const tk in s.topics){const t=s.topics[tk];if(t.cards&&t.cards.length){ht=true;const btn=document.createElement('button');btn.className='chapter-button';btn.innerText=t.title;btn.onclick=()=>{loadFlashcards(sk,tk);};c.appendChild(btn);}}if(!ht)c.innerHTML=`<p>No topics available for ${s.title}.</p>`;}document.getElementById('flashcard-topic-back-button').onclick=()=>navigateToScreen('flashcards-subject-screen');navigateToScreen('flashcards-topic-screen');}
+    function loadFlashcards(sk,tk){currentFlashcardSubject=sk;currentFlashcardTopic=tk;const subjectData=flashcardData[sk];if(!subjectData){console.error("Subject key not found:",sk);return;} const tD=subjectData.topics[tk],vTE=document.getElementById('flashcard-viewer-title'),fE=document.getElementById('flashcardFront'),bE=document.getElementById('flashcardBack'),cE=document.getElementById('flashcardCounter'),nC=document.querySelector('#flashcard-viewer-screen .flashcard-navigation'),mMB=document.getElementById('flashcard-master-mode-btn');if(!tD||!tD.cards||!tD.cards.length){vTE.innerText="No Flashcards";fE.innerText="No cards available.";bE.innerHTML="";cE.innerText="Card 0/0";currentFlashcards=[];currentFlashcardIndex=0;nC.style.display='none';mMB.style.display='none';}else{vTE.innerText=`${flashcardData[sk].title}: ${tD.title}`;currentFlashcards=tD.cards;currentFlashcardIndex=0;displayCurrentCard();nC.style.display='flex';mMB.style.display='block';}document.getElementById('flashcard-viewer-back-button').onclick=()=>showFlashcardTopics(sk);navigateToScreen('flashcard-viewer-screen');}
+    function displayCurrentCard(){if(!currentFlashcards.length)return;const card=currentFlashcards[currentFlashcardIndex];document.getElementById('flashcardFront').innerText=card.term;document.getElementById('flashcardBack').innerHTML=card.definition;document.getElementById('flashcardCounter').innerText=`Card ${currentFlashcardIndex+1} of ${currentFlashcards.length}`;document.getElementById('flashcard').classList.remove('flipped');}
+    function flipCard(){if(currentFlashcards.length)document.getElementById('flashcard').classList.toggle('flipped');}
+    function nextCard(){if(!currentFlashcards.length)return;if(currentFlashcardIndex<currentFlashcards.length-1){currentFlashcardIndex++;displayCurrentCard();}else alert("Last card!");}
+    function prevCard(){if(!currentFlashcards.length)return;if(currentFlashcardIndex>0){currentFlashcardIndex--;displayCurrentCard();}else alert("First card.");}
+    let mathGameTimerInterval,mathGameTimeLeft,mathGameScore,mathGameQuestion;function startMathEquationGame(){mathGameScore=0;mathGameTimeLeft=30;document.getElementById('mathGameScore').textContent=`Score: ${mathGameScore}`;document.getElementById('mathGameTimer').textContent=`Time: ${mathGameTimeLeft}s`;document.getElementById('mathGameFeedback').textContent="";nextMathEquationQuestion();if(mathGameTimerInterval)clearInterval(mathGameTimerInterval);mathGameTimerInterval=setInterval(()=>{mathGameTimeLeft--;document.getElementById('mathGameTimer').textContent=`Time: ${mathGameTimeLeft}s`;if(mathGameTimeLeft<=0){clearInterval(mathGameTimerInterval);document.getElementById('mathGameQuestionArea').innerHTML="Time's Up!";document.getElementById('mathGameInputArea').innerHTML=`<p>Final Score: ${mathGameScore}</p><button class="ask-button" onclick="startMathEquationGame()">Play Again</button>`;document.getElementById('mathGameFeedback').textContent="";}},1000);}function stopMathGame(){if(mathGameTimerInterval)clearInterval(mathGameTimerInterval);}
+    function nextMathEquationQuestion(){if(mathGameTimeLeft<=0)return;mathGameQuestion=mathEquationGameQuestions[Math.floor(Math.random()*mathEquationGameQuestions.length)];document.getElementById('mathGameQuestionArea').innerHTML=mathGameQuestion.q;const inputArea=document.getElementById('mathGameInputArea');document.getElementById('mathGameFeedback').textContent=mathGameQuestion.hint||"";if(mathGameQuestion.hint)document.getElementById('mathGameFeedback').style.color="var(--pw-blue)";if(mathGameQuestion.type==="solve_x"){inputArea.innerHTML=`<input type="text" id="mathGameAnswerInput" placeholder="Answer" inputmode="numeric"><button class="ask-button" onclick="checkMathEquationAnswer()">Submit</button>`;document.getElementById('mathGameAnswerInput')?.focus();}else{inputArea.innerHTML=`<button class="quick-quiz-option-button" onclick="checkMathEquationAnswer(true)">True</button><button class="quick-quiz-option-button" onclick="checkMathEquationAnswer(false)">False</button>`;}}
+    function checkMathEquationAnswer(isTF){if(mathGameTimeLeft<=0)return;const fbEl=document.getElementById('mathGameFeedback');let correct=false;if(mathGameQuestion.type==="solve_x"){const ansIn=document.getElementById('mathGameAnswerInput');let userAns=parseFloat(ansIn.value);if(!isNaN(userAns)&&userAns===mathGameQuestion.a)correct=true;}else if(mathGameQuestion.type==="true_false"&&isTF===mathGameQuestion.a)correct=true;if(correct){mathGameScore++;fbEl.textContent="Correct!";fbEl.style.color="var(--correct-green)";}else{fbEl.textContent=`Incorrect. Answer: ${mathGameQuestion.a}`;fbEl.style.color="var(--incorrect-red)";}document.getElementById('mathGameScore').textContent=`Score: ${mathGameScore}`;setTimeout(nextMathEquationQuestion,1200);}
+    let termScrambleLives,termScrambleScore,termScrambleWordData;function startTermScrambleGame(){termScrambleScore=0;termScrambleLives=3;document.getElementById('termScrambleScore').textContent=`Score: ${termScrambleScore}`;document.getElementById('termScrambleLives').textContent=`Lives: ${termScrambleLives} ❤️`;nextTermScrambleWord();}function stopTermScrambleGame(){}
+    function nextTermScrambleWord(){const fbEl=document.getElementById('termScrambleFeedback'),ansInEl=document.getElementById('termScrambleAnswerInput'),subBtn=document.querySelector('#science-term-scramble-game-screen .ask-button');fbEl.textContent="";if(ansInEl)ansInEl.value="";if(termScrambleLives<=0){document.getElementById('termScrambleWordArea').innerHTML="Game Over!";document.getElementById('termScrambleHint').innerHTML=`Final Score: ${termScrambleScore} <br><button class="ask-button" onclick="startTermScrambleGame()">Play Again</button>`;ansInEl.style.display='none';subBtn.style.display='none';return;}ansInEl.style.display='block';subBtn.style.display='inline-block';termScrambleWordData=scienceTermScrambleWords[Math.floor(Math.random()*scienceTermScrambleWords.length)];let termArr=termScrambleWordData.term.split('').sort(()=>.5-Math.random());if(termArr.join('')===termScrambleWordData.term)termArr.reverse();document.getElementById('termScrambleWordArea').textContent=termArr.join('');document.getElementById('termScrambleHint').textContent=`Hint: ${termScrambleWordData.hint}`;ansInEl.focus();}
+    function checkTermScrambleAnswer(){if(termScrambleLives<=0)return;const userAns=document.getElementById('termScrambleAnswerInput').value.trim().toUpperCase(),fbEl=document.getElementById('termScrambleFeedback');if(userAns===termScrambleWordData.term){termScrambleScore++;fbEl.textContent="Correct!";fbEl.style.color="var(--correct-green)";setTimeout(nextTermScrambleWord,1200);}else{termScrambleLives--;fbEl.textContent="Incorrect.";fbEl.style.color="var(--incorrect-red)";if(termScrambleLives<=0){fbEl.innerHTML=`Game Over! The word was: <strong>${termScrambleWordData.term}</strong>`;setTimeout(nextTermScrambleWord,2500);}}document.getElementById('termScrambleScore').textContent=`Score: ${termScrambleScore}`;document.getElementById('termScrambleLives').textContent=`Lives: ${termScrambleLives} ${termScrambleLives>0?'❤️':'💔'}`;}
+    let sstFactTimerInterval,sstFactTimeLeft,sstFactScore,sstFactQuestionData;function startSSTFactRecallGame(){sstFactScore=0;sstFactTimeLeft=60;document.getElementById('sstFactScore').textContent=`Score: ${sstFactScore}`;document.getElementById('sstFactTimer').textContent=`Time: ${sstFactTimeLeft}s`;nextSSTFactQuestion();if(sstFactTimerInterval)clearInterval(sstFactTimerInterval);sstFactTimerInterval=setInterval(()=>{sstFactTimeLeft--;document.getElementById('sstFactTimer').textContent=`Time: ${sstFactTimeLeft}s`;if(sstFactTimeLeft<=0){clearInterval(sstFactTimerInterval);document.getElementById('sstFactQuestionArea').innerHTML="Time's Up!";document.getElementById('sstFactOptionsArea').innerHTML=`<p>Final Score: ${sstFactScore}</p><button class="ask-button" onclick="startSSTFactRecallGame()">Play Again</button>`;document.getElementById('sstFactFeedback').textContent="";}},1000);}function stopSSTFactGame(){if(sstFactTimerInterval)clearInterval(sstFactTimerInterval);}
+    function nextSSTFactQuestion(){if(sstFactTimeLeft<=0)return;sstFactQuestionData=sstFactRecallQuestions[Math.floor(Math.random()*sstFactRecallQuestions.length)];document.getElementById('sstFactQuestionArea').innerHTML=sstFactQuestionData.q;const optsArea=document.getElementById('sstFactOptionsArea');optsArea.innerHTML="";document.getElementById('sstFactFeedback').textContent=sstFactQuestionData.s?`Topic: ${sstFactQuestionData.s}`:"";sstFactQuestionData.o.forEach((opt,idx)=>{const btn=document.createElement('button');btn.className='quick-quiz-option-button';btn.innerHTML=opt;btn.onclick=()=>checkSSTFactAnswer(idx);optsArea.appendChild(btn);});}
+    function checkSSTFactAnswer(selIdx){if(sstFactTimeLeft<=0)return;const fbEl=document.getElementById('sstFactFeedback'),optBtns=document.querySelectorAll('#sstFactOptionsArea .quick-quiz-option-button');optBtns.forEach(b=>{b.classList.add('disabled');b.onclick=null;});if(selIdx===sstFactQuestionData.c){sstFactScore++;fbEl.textContent="Correct!";fbEl.style.color="var(--correct-green)";optBtns[selIdx]?.classList.add('correct');}else{fbEl.textContent=`Incorrect. Correct answer: ${sstFactQuestionData.o[sstFactQuestionData.c]}`;fbEl.style.color="var(--incorrect-red)";optBtns[selIdx]?.classList.add('incorrect');optBtns[sstFactQuestionData.c]?.classList.add('correct');}document.getElementById('sstFactScore').textContent=`Score: ${sstFactScore}`;setTimeout(nextSSTFactQuestion,1500);}
+
+    // Document Ready
+    document.addEventListener('DOMContentLoaded', () => {
+        updateCalcDisplay();
+        startNotificationCycling();
+        displayDailyThought();
+        initializeApp();
+        window.addEventListener('beforeunload', () => { speechSynthesis.cancel(); isAiSpeaking = false; });
+    });
+</script>
+</body>
+</html>
